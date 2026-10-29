@@ -135,6 +135,13 @@ button.chip{cursor:pointer}
 .rempty{padding:18px 0;font-weight:700;text-align:center;display:block!important}
 #loading{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;color:var(--board);background:#9fc4dd}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .4s}
+#tut{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 64px);width:min(92%,420px);background:var(--magic);color:#fff;font-weight:900;font-size:15px;line-height:1.45;padding:10px 14px;border-radius:12px;box-shadow:0 4px 0 #8f1457,0 10px 24px rgba(0,0,0,.3);pointer-events:none;text-align:center;text-wrap:balance}
+#pad{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;align-items:center;gap:8px;background:rgba(15,46,36,.9);color:var(--cream);font-weight:900;font-size:15px;padding:10px 16px;border-radius:999px;border:2px solid var(--gold);pointer-events:none;white-space:nowrap;max-width:94%}
+#pad.hold{background:var(--gold);color:var(--ink);border-color:#fff;transform:translateX(-50%) scale(1.06)}
+#pad .hand{font-size:22px;display:inline-block;animation:hand 1.1s ease-in-out infinite}
+#pad.hold .hand{animation:none}
+@keyframes hand{0%,100%{transform:translate(0,0)}25%{transform:translate(-8px,-4px)}75%{transform:translate(8px,-4px)}}
+@media (prefers-reduced-motion:reduce){#pad .hand{animation:none}}
 @media (max-width:360px){.card{padding:20px 14px 14px}}
 @media (prefers-reduced-motion:reduce){#flash{transition:none}}
 </style>
@@ -147,11 +154,14 @@ button.chip{cursor:pointer}
 
   <div id="top" hidden>
     <button class="chip" id="backBtn" data-i="back">もどる</button>
+    <button class="chip" id="helpBtn" data-i="help" hidden>遊び方</button>
     <div class="chip" id="inkBox" hidden><span data-i="ink">線ののこり</span><div id="ink"><div id="inkFill"></div></div></div>
     <div class="chip" id="batInfo" hidden><span class="nm" id="biName"></span><span class="cnt"><span>S</span><span class="dots" id="biS"><i></i><i></i><i></i></span><span id="biN"></span></span></div>
   </div>
   <div id="msg" hidden><div id="msgBig"></div><div id="msgSub"></div></div>
   <div id="hint" hidden></div>
+  <div id="tut" hidden></div>
+  <div id="pad" hidden><span class="hand" id="padHand">👆</span><span id="padT"></span></div>
 
   <div class="bar" id="edBar" hidden>
     <button id="edClear" data-i="edClear">消す</button>
@@ -285,8 +295,10 @@ const TX = {
     codeTitle: '合言葉で打つ', codeBad: '8文字で入れてね', notFound: 'その合言葉の魔球は見つかりません', loading: '読みこみ中…', netFail: 'つながりませんでした',
     preFrom: '魔球', tries: '挑戦', hits: '打たれた', avg: '被打率', kCol: '奪三振',
     preNone: 'まだだれも挑戦していません。あなたが最初の挑戦者です', mineNote: '自分の魔球なので記録されません', doneNote2: 'この魔球にはもう挑戦ずみなので、記録されません',
-    how1: '指を置いたまま動かすと、バットの芯（輪）が動く', how2: '指をはなした瞬間にスイング', how3: '3ストライクまでにヒットを打てば勝ち',
+    how1: '画面を押したまま指を動かすと、黄色い輪（バットの芯）が動く', how2: 'ボールが輪に重なる瞬間に指をはなすとスイング', how3: '3ストライクまでにヒットを打てば勝ち',
     ready: 'かまえて…', pitchN: '{n}球目',
+    padIdle: '画面を押したまま動かして、輪を合わせる', padHold: 'はなすとスイング！', padTut: 'いいね！ 輪が動いた', help: '遊び方',
+    tut1: '練習：画面を押したまま、指を上下左右に動かしてみよう。黄色い輪が動きます', tut2: '練習の1球（ゆっくり・まっすぐ）。ボールが輪に重なる瞬間に指をはなそう', tutNow: 'いま！', tutOk: 'できた！ 本番いくよ', tutAgain: 'おしい！ もう1球練習', tutGo: '本番！', practice: '練習',
     swingMiss: '空振り', looking: '見逃し', foul: 'ファウル', hit: 'ヒット', hr: 'ホームラン', k: '三振',
     tEarly: 'タイミング：早い', tLate: 'タイミング：遅い', tJust: 'タイミング：ぴったり', pHigh: '芯が上', pLow: '芯が下', pLeft: '芯が左', pRight: '芯が右', pJust: '芯：ぴったり', noSwing: 'バットを振らなかった',
     win: '打った！', lose: '三振…', winSub: '魔球「{n}」を打ちくだいた', loseSub: '魔球「{n}」に三振した',
@@ -314,8 +326,10 @@ const TX = {
     codeTitle: 'Bat with a code', codeBad: 'Enter 8 characters', notFound: 'No pitch found for that code', loading: 'Loading…', netFail: "Couldn't connect",
     preFrom: 'Magic pitch', tries: 'Faced', hits: 'Hit', avg: 'AVG', kCol: 'Ks',
     preNone: 'Nobody has faced it yet. You are the first', mineNote: "It's your own pitch, so it isn't recorded", doneNote2: "You already faced this pitch, so it isn't recorded",
-    how1: 'Hold and slide your finger to move the sweet spot (ring)', how2: 'Let go to swing', how3: 'Get a hit before 3 strikes to win',
+    how1: 'Hold the screen and slide your finger to move the yellow ring (sweet spot)', how2: 'Let go the moment the ball meets the ring to swing', how3: 'Get a hit before 3 strikes to win',
     ready: 'Get ready…', pitchN: 'Pitch {n}',
+    padIdle: 'Hold and slide to line up the ring', padHold: 'Let go to swing!', padTut: 'Nice! The ring moves', help: 'How to play',
+    tut1: 'Practice: hold the screen and slide your finger around. The yellow ring follows', tut2: 'Practice pitch (slow and straight). Let go the moment the ball meets the ring', tutNow: 'NOW!', tutOk: 'Got it! Here comes the real one', tutAgain: 'Close! One more practice pitch', tutGo: 'Play ball!', practice: 'Practice',
     swingMiss: 'Swing and miss', looking: 'Called strike', foul: 'Foul', hit: 'Hit', hr: 'Home run', k: 'Strikeout',
     tEarly: 'Timing: early', tLate: 'Timing: late', tJust: 'Timing: perfect', pHigh: 'Sweet spot: too high', pLow: 'Sweet spot: too low', pLeft: 'Sweet spot: too far left', pRight: 'Sweet spot: too far right', pJust: 'Sweet spot: perfect', noSwing: "You didn't swing",
     win: 'You hit it!', lose: 'Struck out…', winSub: 'You crushed the magic pitch "{n}"', loseSub: 'The magic pitch "{n}" struck you out',
@@ -343,8 +357,10 @@ const TX = {
     codeTitle: '用暗號打擊', codeBad: '請輸入8個字', notFound: '找不到這個暗號的魔球', loading: '讀取中…', netFail: '無法連線',
     preFrom: '魔球', tries: '挑戰', hits: '被擊出', avg: '被打擊率', kCol: '三振',
     preNone: '還沒有人挑戰過。你是第一位挑戰者', mineNote: '這是你自己的魔球，所以不記錄', doneNote2: '你已經挑戰過這顆魔球，所以不記錄',
-    how1: '手指按住移動，球棒的甜蜜點（圓圈）會跟著動', how2: '放開手指的瞬間揮棒', how3: '在3好球之前擊出安打就贏了',
+    how1: '按住畫面移動手指，黃色圓圈（球棒的甜蜜點）會跟著動', how2: '在球碰到圓圈的瞬間放開手指就會揮棒', how3: '在3好球之前擊出安打就贏了',
     ready: '準備…', pitchN: '第{n}球',
+    padIdle: '按住移動，對準圓圈', padHold: '放開就揮棒！', padTut: '很好！圓圈動了', help: '玩法',
+    tut1: '練習：按住畫面，上下左右移動手指看看。黃色圓圈會跟著動', tut2: '練習球（慢速・直球）。在球碰到圓圈的瞬間放開手指', tutNow: '就是現在！', tutOk: '成功！正式開始', tutAgain: '可惜！再練習1球', tutGo: '正式開始！', practice: '練習',
     swingMiss: '揮棒落空', looking: '站著不揮', foul: '界外球', hit: '安打', hr: '全壘打', k: '三振',
     tEarly: '時機：太早', tLate: '時機：太晚', tJust: '時機：剛好', pHigh: '甜蜜點偏上', pLow: '甜蜜點偏下', pLeft: '甜蜜點偏左', pRight: '甜蜜點偏右', pJust: '甜蜜點：剛好', noSwing: '沒有揮棒',
     win: '打到了！', lose: '三振…', winSub: '擊碎了魔球「{n}」', loseSub: '被魔球「{n}」三振了',
@@ -372,8 +388,10 @@ const TX = {
     codeTitle: '암호로 치기', codeBad: '8글자로 넣어 줘', notFound: '그 암호의 마구를 찾을 수 없어요', loading: '불러오는 중…', netFail: '연결하지 못했어요',
     preFrom: '마구', tries: '도전', hits: '맞음', avg: '피안타율', kCol: '탈삼진',
     preNone: '아직 아무도 도전하지 않았어요. 당신이 첫 도전자', mineNote: '자기 마구라서 기록되지 않아요', doneNote2: '이미 도전한 마구라서 기록되지 않아요',
-    how1: '손가락을 댄 채 움직이면 배트 중심(고리)이 움직인다', how2: '손가락을 떼는 순간 스윙', how3: '3스트라이크 전에 안타를 치면 승리',
+    how1: '화면을 누른 채 손가락을 움직이면 노란 고리(배트 중심)가 움직인다', how2: '공이 고리에 겹치는 순간 손가락을 떼면 스윙', how3: '3스트라이크 전에 안타를 치면 승리',
     ready: '준비…', pitchN: '{n}구째',
+    padIdle: '누른 채 움직여 고리를 맞추기', padHold: '떼면 스윙!', padTut: '좋아! 고리가 움직였다', help: '하는 법',
+    tut1: '연습: 화면을 누른 채 손가락을 상하좌우로 움직여 봐. 노란 고리가 따라와', tut2: '연습 1구(느리고 곧게). 공이 고리에 겹치는 순간 손가락을 떼자', tutNow: '지금!', tutOk: '성공! 실전 간다', tutAgain: '아깝다! 1구 더 연습', tutGo: '실전!', practice: '연습',
     swingMiss: '헛스윙', looking: '루킹', foul: '파울', hit: '안타', hr: '홈런', k: '삼진',
     tEarly: '타이밍: 빠름', tLate: '타이밍: 늦음', tJust: '타이밍: 딱 맞음', pHigh: '중심이 위', pLow: '중심이 아래', pLeft: '중심이 왼쪽', pRight: '중심이 오른쪽', pJust: '중심: 딱 맞음', noSwing: '배트를 휘두르지 않았다',
     win: '쳤다!', lose: '삼진…', winSub: '마구 「{n}」을 박살 냈다', loseSub: '마구 「{n}」에 삼진당했다',
@@ -407,7 +425,7 @@ document.querySelectorAll('.langs button').forEach(b => b.onclick = () => { LANG
 const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 /* ===================== 数字の決まり ===================== */
-const SPEED = 140 / 3.6;           // 球速 140km/h（線にそって）
+const SPEED = 100 / 3.6;           // 球速 100km/h（線にそって）
 const R0 = new THREE.Vector3(0.32, 1.72, -1.25); // 手からはなれる所
 const ZP = -18.2;                   // ホームベースの面
 const ZX = 0.25, ZB = 0.48, ZT = 1.08; // ストライクゾーン（ボール1個ぶん込み）
@@ -651,20 +669,24 @@ batterPose(0); setBat(0);
 /* ===================== ボールと残像 ===================== */
 const ball = new THREE.Group(); scene.add(ball);
 {
-  const s = mesh(new THREE.SphereGeometry(.037, 20, 14), M.white); ball.add(s);
+  const s = new THREE.Mesh(new THREE.SphereGeometry(.037, 20, 14), new THREE.MeshBasicMaterial({ color: 0xffffff })); s.renderOrder = 6; ball.add(s);
   for (const sd of [-1, 1]) { const r = new THREE.Mesh(new THREE.TorusGeometry(.03, .004, 6, 20, Math.PI * 1.2), M.seam); r.rotation.set(Math.PI / 2, 0, sd * 1.1); r.position.x = sd * .01; ball.add(r); }
-  const glow = new THREE.Mesh(new THREE.SphereGeometry(.07, 16, 12), new THREE.MeshBasicMaterial({ color: 0xff3fa4, transparent: true, opacity: .25, depthWrite: false })); ball.add(glow); ball.userData.glow = glow;
+  const glow = new THREE.Mesh(new THREE.SphereGeometry(.085, 16, 12), new THREE.MeshBasicMaterial({ color: 0xff3fa4, transparent: true, opacity: .45, depthWrite: false, blending: THREE.AdditiveBlending })); ball.add(glow); ball.userData.glow = glow;
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(.15, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffd23f, transparent: true, opacity: .18, depthWrite: false, blending: THREE.AdditiveBlending })); ball.add(halo); ball.userData.halo = halo;
 }
-const TRN = 48;
-const trail = new THREE.InstancedMesh(new THREE.SphereGeometry(.05, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff5fb6, transparent: true, opacity: .55, depthWrite: false }), TRN);
+const TRN = 64;
+const trail = new THREE.InstancedMesh(new THREE.SphereGeometry(.06, 10, 8), new THREE.MeshBasicMaterial({ color: 0xff5fb6, transparent: true, opacity: .7, depthWrite: false, blending: THREE.AdditiveBlending }), TRN);
 trail.frustumCulled = false; scene.add(trail);
 const trailPts = [];
+let ballScale = 1.5;
+const ballShadow = new THREE.Mesh(new THREE.CircleGeometry(.09, 20), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .35, depthWrite: false }));
+ballShadow.rotation.x = -Math.PI / 2; ballShadow.visible = false; scene.add(ballShadow);
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _s = new THREE.Vector3();
 function trailPush(p) { trailPts.unshift(p.clone()); if (trailPts.length > TRN) trailPts.pop(); }
 function trailDraw() {
   for (let i = 0; i < TRN; i++) {
     const p = trailPts[i]; const k = p ? (1 - i / TRN) : 0;
-    _s.setScalar(k * k * 1.0 + .0001); _m4.compose(p || V3(0, -50, 0), _q, _s); trail.setMatrixAt(i, _m4);
+    _s.setScalar((k * k * 1.0 + .0001) * ballScale); _m4.compose(p || V3(0, -50, 0), _q, _s); trail.setMatrixAt(i, _m4);
   }
   trail.instanceMatrix.needsUpdate = true;
 }
@@ -744,6 +766,7 @@ function setCam(mode) {
   catcher.G.visible = mode !== 'bat'; // 打席ではゾーンが見えるようにキャッチャーを消してミットだけ
   M.bodyC.opacity = 1; M.mitt.opacity = 1; mitt.visible = mode !== 'bat';
   zone.visible = mode === 'ed' || mode === 'bat';
+  ballScale = mode === 'bat' ? 2.6 : 1.6;
   zone.userData.fill.material.opacity = mode === 'bat' ? .08 : .16;
 }
 function resize() {
@@ -810,6 +833,7 @@ let mode = 'title';
 const PANELS = ['#title', '#codeP', '#regP', '#doneP', '#preP', '#endP', '#rankP'];
 function showPanel(id) { PANELS.forEach(p => $(p).hidden = p !== id); }
 function hud({ top = false, ink = false, bat = false, ed = false } = {}) {
+  $('#helpBtn').hidden = !bat; if (!bat) { $('#pad').hidden = true; $('#tut').hidden = true; }
   $('#top').hidden = !top; $('#inkBox').hidden = !ink; $('#batInfo').hidden = !bat; $('#edBar').hidden = !ed;
 }
 let hintT = 0;
@@ -942,7 +966,7 @@ function updatePitch(dt) {
   pitcherAnim(u);
   if (S.t < WINDUP) { PR.hand.getWorldPosition(_hand); ball.position.copy(_hand); return; }
   if (!S.released) { S.released = true; SND.whoosh(); SND.magic(); if (!S.o.test) hint(''); }
-  const ft = S.t - WINDUP, d = ft * SPEED;
+  const ft = S.t - WINDUP, d = ft * (S.P.v || SPEED);
   if (S.hitV) { // 打ち返された
     S.hitV.y -= 9.8 * dt; ball.position.addScaledVector(S.hitV, dt); if (ball.position.y < .04) { ball.position.y = .04; S.hitV.y *= -.35; S.hitV.x *= .7; S.hitV.z *= .7; }
     trailPush(ball.position); trailDraw();
@@ -954,6 +978,7 @@ function updatePitch(dt) {
     const arrive = WINDUP + S.P.T, jt = BAT.swung ? Math.max(arrive, BAT.swingT + SWING) : arrive + .16;
     if (S.t >= jt) { S.judged = true; judge(S); if (S.hitV) return; }
   }
+  if (BAT.tut === 2 && !S.o.test && !S.cued && S.t >= WINDUP + S.P.T - SWING) { S.cued = true; if (!BAT.swung) bigMsg(tr('tutNow'), '', 'good', .45); }
   if (d < S.P.L) { posAt(S.P, d, ball.position); trailPush(ball.position); trailDraw(); }
   else {
     // ゾーンを通過 → ミットへ
@@ -973,13 +998,44 @@ const BAT = { ball: null, P: null, code: '', strikes: 0, n: 0, over: false, coun
 function batUI() {
   $('#biName').textContent = BAT.ball ? BAT.ball.n : '';
   [...$('#biS').children].forEach((d, i) => d.classList.toggle('on', i < BAT.strikes));
-  $('#biN').textContent = tr('pitchN', { n: Math.max(1, BAT.n) });
+  $('#biN').textContent = BAT.tut ? tr('practice') : tr('pitchN', { n: Math.max(1, BAT.n) });
 }
-function startAtBat() {
-  ED.test = null; PITCH = null;
-  mode = 'bat'; resetScene(); setCam('bat'); showPanel(null); hud({ top: true, bat: true }); bigMsg(''); clearDraw(); setTube(null);
-  BAT.strikes = 0; BAT.n = 0; BAT.over = false; BAT.result = null; BAT.cur.set(0, .78, ZP);
-  batUI(); nextPitch();
+// 画面下の案内（いま何をすればいいか）
+function updatePad() {
+  const pad = $('#pad');
+  const active = mode === 'bat' && !BAT.swung && (BAT.tut === 1 || (PITCH && !PITCH.judged));
+  pad.hidden = !active; if (!active) return;
+  const hold = !!BAT.drag;
+  pad.classList.toggle('hold', hold);
+  $('#padT').textContent = hold ? (BAT.tut === 1 ? tr('padTut') : tr('padHold')) : tr('padIdle');
+  // 輪：待っているときはふくらんで呼ぶ、押しているときは大きく明るく
+  const k = hold ? 1.18 : 1 + Math.sin(tAll * 6) * .07; cursor.scale.setScalar(k);
+}
+function showTut(t) { const e = $('#tut'); e.textContent = t || ''; e.hidden = !t; }
+function startAtBat(tut) {
+  ED.test = null; PITCH = null; clearTimeout(BAT.timer);
+  mode = 'bat'; resetScene(); setCam('bat'); showPanel(null); hud({ top: true, bat: true }); bigMsg(''); clearDraw(); setTube(null); hint('');
+  BAT.strikes = 0; BAT.n = 0; BAT.over = false; BAT.result = null; BAT.cur.set(0, .78, ZP); BAT.drag = null; BAT.swung = false; BAT.swingK = 0;
+  if (tut || !lsGet('mt_tut')) { // はじめての打席は練習から
+    BAT.tut = 1; BAT.tutDrag = 0; BAT.tutTries = 0;
+    cursor.visible = true; placeCursor(); batterPose(0); setBat(0); showTut(tr('tut1')); batUI(); return;
+  }
+  BAT.tut = 0; showTut(''); batUI(); nextPitch();
+}
+// 練習の1球：ゆっくり（60km/h）・まっすぐ・ゾーンのまん中
+function practicePath() { const W = resample([R0.clone(), V3(0, .8, ZP)], .2); const P = makePath(W); P.v = 60 / 3.6; P.T = P.L / P.v; return P; }
+function startPractice() {
+  BAT.tut = 2; BAT.swung = false; BAT.swingT = -1; BAT.swingK = 0; BAT.result = null;
+  cursor.visible = true; placeCursor(); batterPose(0); setBat(0); setCam('bat'); showTut(tr(BAT.tutTries ? 'tutAgain' : 'tut2')); batUI();
+  startPitch(practicePath(), { wait: 1.2, onEnd: afterPractice });
+}
+function afterPractice() {
+  PITCH = null; if (mode !== 'bat') return;
+  const ok = BAT.result === 'hit' || BAT.result === 'hr'; BAT.tutTries++;
+  if (ok || BAT.tutTries >= 3) {
+    lsSet('mt_tut', 1); showTut(''); bigMsg(tr(ok ? 'tutOk' : 'tutGo'), '', 'good', 1.3);
+    BAT.timer = setTimeout(() => { if (mode !== 'bat') return; BAT.tut = 0; BAT.strikes = 0; BAT.n = 0; BAT.over = false; BAT.cur.set(0, .78, ZP); batUI(); nextPitch(); }, 1300);
+  } else BAT.timer = setTimeout(() => { if (mode === 'bat') startPractice(); }, 300);
 }
 function nextPitch() {
   BAT.n++; BAT.swung = false; BAT.swingT = -1; BAT.swingK = 0; batUI();
@@ -991,7 +1047,7 @@ function nextPitch() {
 function placeCursor() { cursor.position.copy(BAT.cur); cursor.lookAt(camera.position); }
 function metersPerPx() { const d = Math.abs(camera.position.z - ZP); return 2 * d * Math.tan(camera.fov * Math.PI / 360) / VH; }
 function batDown(e) {
-  if (mode !== 'bat' || !PITCH || BAT.swung) return;
+  if (mode !== 'bat' || BAT.swung || (!PITCH && BAT.tut !== 1)) return;
   audioOn(); BAT.drag = { id: e.pointerId, x: e.clientX, y: e.clientY }; try { canvas.setPointerCapture(e.pointerId); } catch (_) { }
 }
 function batMove(e) {
@@ -999,9 +1055,11 @@ function batMove(e) {
   const k = metersPerPx() * 1.15, dx = e.clientX - D.x, dy = e.clientY - D.y; D.x = e.clientX; D.y = e.clientY;
   // カメラはホームから投手を向いているので、画面の右 = -x
   BAT.cur.x = clamp(BAT.cur.x - dx * k, -.7, .7); BAT.cur.y = clamp(BAT.cur.y - dy * k, .25, 1.5); placeCursor();
+  if (BAT.tut === 1) BAT.tutDrag += Math.hypot(dx, dy);
 }
 function batUp(e) {
   const D = BAT.drag; if (!D || D.id !== e.pointerId) return; BAT.drag = null;
+  if (BAT.tut === 1) { if (BAT.tutDrag >= 60) startPractice(); return; }
   if (!PITCH || BAT.swung || PITCH.t < 0 || PITCH.judged) return; // かまえ中ははなしても振らない
   BAT.swung = true; BAT.swingT = PITCH.t; BAT.swingK = 0.0001; SND.miss();
 }
@@ -1013,9 +1071,9 @@ function judge(S) {
   else {
     const dt = BAT.swingT + SWING - arrive; // マイナス = 早い
     const dx = BAT.cur.x - end.x, dy = BAT.cur.y - end.y, dist = Math.hypot(dx, dy), adt = Math.abs(dt);
-    if (dist < .06 && adt < .045) res = 'hr';
-    else if (dist < .13 && adt < .085) res = 'hit';
-    else if (dist < .22 && adt < .14) res = 'foul';
+    if (dist < .07 && adt < .045) res = 'hr';
+    else if (dist < .15 && adt < .085) res = 'hit';
+    else if (dist < .24 && adt < .14) res = 'foul';
     else res = 'swingMiss';
     sub.push(adt < .03 ? tr('tJust') : dt < 0 ? tr('tEarly') : tr('tLate'));
     if (dist < .04) sub.push(tr('pJust'));
@@ -1037,6 +1095,7 @@ function judge(S) {
   const cls = res === 'hr' || res === 'hit' ? 'good' : res === 'foul' ? '' : 'magic';
   bigMsg(tr(res), sub.join(' ／ '), cls, 1.6);
   hint('');
+  if (BAT.tut === 2) return; // 練習の球は数えない
   // カウント
   if (res === 'hr' || res === 'hit') { BAT.over = 'win'; }
   else if (res === 'foul') { if (BAT.strikes < 2) BAT.strikes++; }
@@ -1230,7 +1289,7 @@ async function randomBall() {
 }
 $('#goRandom').onclick = guard(() => randomBall());
 $('#goMake').onclick = guard(() => edEnter(false));
-$('#backBtn').onclick = guard(() => { if (mode === 'bat') { PITCH = null; } ED.test = null; toTitle(); });
+$('#backBtn').onclick = guard(() => { if (mode === 'bat') { PITCH = null; clearTimeout(BAT.timer); } ED.test = null; toTitle(); });
 
 // ランキング
 let rankTab = 'rank';
@@ -1265,6 +1324,7 @@ async function delBall(code) {
   } catch (e) { alert(tr('delFail')); }
 }
 $('#goRank').onclick = guard(() => showRank('rank'));
+$('#helpBtn').onclick = guard(() => { if (mode === 'bat') startAtBat(true); });
 $('#tabRank').onclick = () => showRank('rank');
 $('#tabMine').onclick = () => showRank('mine');
 $('#rankClose').onclick = guard(() => toTitle());
@@ -1301,9 +1361,15 @@ function frame(now) {
     _look.copy(CAMS.bat.look).lerp(ball.position, .55); camera.lookAt(_look);
   }
   if (mode === 'bat') updateSwing(dt);
+  updatePad();
   if (mode === 'edit' && !ED.drawing && !ED.P && !ED.test) redrawStroke();
   if (mode === 'edit' && ED.drawing) redrawStroke();
-  if (ball.visible) { ball.rotation.x += dt * 30; ball.userData.glow.material.opacity = .2 + Math.sin(tAll * 20) * .08; }
+  if (ball.visible && camMode === 'bat') { // 打席：遠くでは大きく光らせ、手前では輪が隠れないように小さく
+    const dc = camera.position.distanceTo(ball.position);
+    ballScale = clamp(dc / 4.5, 1.1, 3.4); ball.userData.halo.material.opacity = clamp((dc - 4) / 10, 0, 1) * .22;
+  } else { ballScale = 1.6; ball.userData.halo.material.opacity = .18; }
+  if (ball.visible) { ball.rotation.x += dt * 30; ball.userData.glow.material.opacity = .4 + Math.sin(tAll * 20) * .12; ball.scale.setScalar(ballScale); }
+  ballShadow.visible = ball.visible && ball.position.y < 12; if (ballShadow.visible) { ballShadow.position.set(ball.position.x, .05, ball.position.z); ballShadow.scale.setScalar(ballScale * clamp(1.4 - ball.position.y * .25, .4, 1.4)); }
   renderer.render(scene, camera);
   requestAnimationFrame(frame);
 }
