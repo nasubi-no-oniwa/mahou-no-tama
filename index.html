@@ -721,6 +721,7 @@ let tube = null;
 const tubeM = new THREE.MeshBasicMaterial({ color: 0xff3fa4, transparent: true, opacity: .8, depthWrite: false });
 function setTube(W) {
   if (tube) { scene.remove(tube); tube.geometry.dispose(); tube = null; }
+  return; // 線は redrawStroke で画面に描く
   if (!W || W.length < 2) return;
   const curve = new THREE.CatmullRomCurve3(W, false, 'centripetal');
   tube = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.min(600, W.length * 3), .03, 8, false), tubeM);
@@ -780,16 +781,26 @@ function setCam(mode) {
   camMode = mode; const asp = VW / VH;
   if (mode === 'top' || mode === 'side') {
     camera = ortho;
+    // 上のボタン・説明と、下のボタンにかからない所に、キャッチャーの後ろからピッチャーの後ろまでを収める
+    const TOPPAD = 150, BOTPAD = 96, SIDEPAD = 18, zA = ZP - 2.2, zB = R0.z + 2.4, span = zB - zA;
+    let wpp, tx, ty, target;
     if (mode === 'top') { // 真上から。ピッチャーが下、ホームが上（画面の右 = 後ろから見たときの右）
-      const hh = Math.max(11.5, 4 / asp), hw = hh * asp;
-      Object.assign(ortho, { left: -hw, right: hw, top: hh, bottom: -hh });
+      wpp = Math.max(span / Math.max(120, VH - TOPPAD - BOTPAD), 7 / Math.max(120, VW - SIDEPAD * 2));
       ortho.position.set(0, 80, MIDZ); ortho.up.set(0, 0, -1); ortho.lookAt(0, 0, MIDZ);
-    } else { // 3塁側の真横から。ピッチャーが左、ホームが右
-      const hw = Math.max(11, 6 * asp), hh = hw / asp, cy = hh * .56;
-      Object.assign(ortho, { left: -hw, right: hw, top: hh, bottom: -hh });
-      ortho.position.set(80, cy + 11, MIDZ); ortho.up.set(0, 1, 0); ortho.lookAt(0, cy, MIDZ); // 少し上から見下ろして地面を見せる
+      target = V3(0, 0, (zA + zB) / 2); ty = TOPPAD + (VH - TOPPAD - BOTPAD) / 2; tx = VW / 2;
+    } else { // 3塁側の真横から（少し見下ろす）。ピッチャーが左、ホームが右。地面を下のボタンの少し上に
+      wpp = span / Math.max(120, VW - SIDEPAD * 2);
+      ortho.position.set(80, 11, MIDZ); ortho.up.set(0, 1, 0); ortho.lookAt(0, 0, MIDZ);
+      target = V3(0, 0, (zA + zB) / 2); ty = VH - BOTPAD - Math.min(150, VH * .2); tx = VW / 2;
     }
+    const hw = wpp * VW / 2, hh = wpp * VH / 2;
+    Object.assign(ortho, { left: -hw, right: hw, top: hh, bottom: -hh });
     ortho.updateProjectionMatrix(); ortho.updateMatrixWorld(true);
+    // target が画面の (tx, ty) に来るようにずらす
+    const p = target.clone().project(ortho), wantX = tx / VW * 2 - 1, wantY = 1 - ty / VH * 2;
+    const right = V3(1, 0, 0).applyQuaternion(ortho.quaternion), up = V3(0, 1, 0).applyQuaternion(ortho.quaternion);
+    ortho.position.addScaledVector(right, (p.x - wantX) * hw).addScaledVector(up, (p.y - wantY) * hh);
+    ortho.updateMatrixWorld(true);
   } else {
     camera = persp; const c = CAMS[mode];
     persp.aspect = asp; persp.position.copy(c.pos); persp.up.set(0, 1, 0); persp.lookAt(c.look); persp.fov = camFov(mode); persp.updateProjectionMatrix(); persp.updateMatrixWorld(true);
@@ -881,7 +892,7 @@ function toTitle() {
 }
 function resetScene() {
   resetPose(pitcher); batterPose(0); setBat(0); ball.visible = false; trailClear(); cursor.visible = false; passMark.visible = false;
-  mitt.position.copy(MITT0); batter.G.visible = true; bat.visible = true;
+  mitt.position.copy(MITT0); batter.G.visible = true; bat.visible = true; goalMark.visible = false;
 }
 
 /* ===================== ピッチャー：線を描く ===================== */
@@ -943,6 +954,9 @@ function ringAt(p, col, r) { dctx.beginPath(); dctx.arc(p.x, p.y, r, 0, Math.PI 
 function redrawStroke() {
   clearDraw();
   if (mode !== 'edit' || ED.test || ED.picking) return;
+  if (ED.W && !(ED.drawing && ED.view === 'ed')) { // 今の魔球
+    const pr = ED.W.map(toScreen); strokePath(pr, ED.drawing ? 'rgba(255,63,164,.45)' : '#ff3fa4', ED.drawing ? 3 : 5, !ED.drawing);
+  }
   if (ED.drawing) { strokePath(ED.pts, ED.inkOut ? '#ff6b5a' : '#ffffff', 4, true); }
   const t = performance.now() / 1000, r = 16 + Math.sin(t * 5) * 4;
   if (!ED.drawing) { const sp = startPoint(); ringAt(sp, 'rgba(255,210,63,.95)', r); ringAt(sp, 'rgba(255,210,63,.35)', r + 9); }
