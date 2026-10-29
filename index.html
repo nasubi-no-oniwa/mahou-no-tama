@@ -73,7 +73,11 @@ button.chip{cursor:pointer}
 #msgSub{margin-top:10px;font-weight:900;font-size:15px;color:#fff;text-shadow:0 1px 3px #000,0 0 10px rgba(0,0,0,.7)}
 #hint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);text-align:center;font-weight:900;font-size:14px;color:#fff;text-shadow:0 1px 3px #000,0 0 10px rgba(0,0,0,.7);pointer-events:none;padding:0 16px;text-wrap:balance}
 #hint.err{color:#ffd0d0}
-#hint.top{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 66px)}
+#hint.top{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 104px)}
+#views{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 58px);display:flex;gap:4px;background:rgba(15,46,36,.88);padding:4px;border-radius:999px}
+#views button{font:900 13px var(--body);border:0;background:transparent;color:var(--cream);border-radius:999px;padding:7px 12px;cursor:pointer;white-space:nowrap}
+#views button[aria-pressed="true"]{background:var(--gold);color:var(--ink)}
+#tutSkip{position:absolute;right:12px;top:calc(env(safe-area-inset-top,0px) + 136px)}
 
 /* 下のボタン帯 */
 .bar{position:absolute;left:0;right:0;bottom:0;padding:0 12px calc(env(safe-area-inset-bottom,0px) + 14px);display:flex;gap:8px;justify-content:center}
@@ -161,6 +165,8 @@ button.chip{cursor:pointer}
   <div id="msg" hidden><div id="msgBig"></div><div id="msgSub"></div></div>
   <div id="hint" hidden></div>
   <div id="tut" hidden></div>
+  <button class="chip" id="tutSkip" data-i="tutSkip" hidden>練習を飛ばす</button>
+  <div id="views" hidden><button data-v="ed" data-i="vBack">後ろから</button><button data-v="top" data-i="vTop">上から見る</button><button data-v="side" data-i="vSide">横から見る</button></div>
   <div id="pad" hidden><span class="hand" id="padHand">👆</span><span id="padT"></span></div>
 
   <div class="bar" id="edBar" hidden>
@@ -281,11 +287,12 @@ const GAME_URL = 'https://nasubi-no-oniwa.github.io/mahou-no-tama/';
 /* ===================== ことば ===================== */
 const TX = {
   ja: {
+    vBack: '後ろから', vTop: '上から見る', vSide: '横から見る', pickHint: 'どこに投げますか？ ストライクゾーンの中をタップ', pickErr: 'ストライクゾーンの中をタップしてね', drawTop: '上から見た曲がり方を描こう。手のボールから、ピンクの印まで', drawSide: '横から見た高さを描こう。手のボールから、ピンクの印まで', errEnd: 'ピンクの印（ゴール）まで描いてね', tutSkip: '練習を飛ばす',
     title: '魔法の球', ruby: 'まほうのたま', titleH: '魔法の<span class="tama">球</span>', sub: '線を描けば、それが魔球になる。',
     make: '魔球を作る', makeSub: 'ピッチャー', byCode: '合言葉で打つ', byCodeSub: 'バッター', random: 'だれかの魔球を打つ', rank: 'ランキング',
     chal: '魔球の挑戦状がとどいています', enter: '打席に入る', back: 'もどる', toTitle: 'タイトルへ', close: 'とじる',
     ink: '線ののこり', edClear: '消す', edTest: '試し投げ', edReg: '登録する',
-    edHint: 'ボールから線を引いて、ストライクゾーンで止める', edDrawn: '試し投げで確かめてから登録しよう',
+    edHint: 'ボールから線を引いて、ストライクゾーンで止める', edDrawn: '「上から見る」「横から見る」で曲がり方や高さも変えられます。試し投げで確かめて登録しよう',
     errStart: 'ピッチャーの手のボールから描きはじめてね', errZone: 'ストライクゾーンで止めないと受けつけられません', errInk: '線がもう伸ばせません。ここで止めてね', errShort: 'もう少し長く描いてね',
     viewP: 'ピッチャーから', viewB: 'バッターから', tapSkip: 'タップで飛ばす',
     regTitle: '魔球に名前をつける', namePh: '魔球の名前（16文字まで）', regSend: '登録',
@@ -312,11 +319,12 @@ const TX = {
     triesN: '挑戦{a}', avgN: '被打率 {v}',
   },
   en: {
+    vBack: 'From behind', vTop: 'From above', vSide: 'From the side', pickHint: 'Where will you throw it? Tap inside the strike zone', pickErr: 'Tap inside the strike zone', drawTop: 'Draw the curve as seen from above. From the ball in hand to the pink mark', drawSide: 'Draw the height as seen from the side. From the ball in hand to the pink mark', errEnd: 'Draw all the way to the pink mark (goal)', tutSkip: 'Skip practice',
     title: 'Magic Pitch', ruby: 'MAGIC PITCH', titleH: 'Magic <span class="tama">Pitch</span>', sub: 'Draw a line. It becomes your magic pitch.',
     make: 'Make a pitch', makeSub: 'Pitcher', byCode: 'Bat with a code', byCodeSub: 'Batter', random: "Bat against someone's pitch", rank: 'Rankings',
     chal: 'A magic pitch has challenged you', enter: 'Step up to the plate', back: 'Back', toTitle: 'Title', close: 'Close',
     ink: 'Line left', edClear: 'Clear', edTest: 'Test throw', edReg: 'Save',
-    edHint: 'Draw from the ball and stop inside the strike zone', edDrawn: 'Try a test throw, then save it',
+    edHint: 'Draw from the ball and stop inside the strike zone', edDrawn: 'Use "From above" / "From the side" to change the curve or height. Test it, then save',
     errStart: "Start drawing from the ball in the pitcher's hand", errZone: 'The line must end inside the strike zone', errInk: "The line can't go any longer. Stop here", errShort: 'Draw a little longer',
     viewP: 'Pitcher view', viewB: 'Batter view', tapSkip: 'Tap to skip',
     regTitle: 'Name your magic pitch', namePh: 'Pitch name (up to 16)', regSend: 'Save',
@@ -343,11 +351,12 @@ const TX = {
     triesN: 'Faced {a}', avgN: 'AVG {v}',
   },
   zh: {
+    vBack: '從後面', vTop: '從上面看', vSide: '從側面看', pickHint: '要投到哪裡？點一下好球帶裡面', pickErr: '請點好球帶裡面', drawTop: '畫出從上面看的轉彎。從手上的球畫到粉紅色記號', drawSide: '畫出從側面看的高度。從手上的球畫到粉紅色記號', errEnd: '請畫到粉紅色記號（終點）', tutSkip: '跳過練習',
     title: '魔法之球', ruby: '魔法之球', titleH: '魔法之<span class="tama">球</span>', sub: '畫出一條線，它就是你的魔球。',
     make: '製作魔球', makeSub: '投手', byCode: '用暗號打擊', byCodeSub: '打者', random: '挑戰別人的魔球', rank: '排行榜',
     chal: '收到魔球的挑戰書', enter: '站上打擊區', back: '返回', toTitle: '回標題', close: '關閉',
     ink: '剩餘線長', edClear: '清除', edTest: '試投', edReg: '登錄',
-    edHint: '從球開始畫線，停在好球帶內', edDrawn: '先試投確認，再登錄吧',
+    edHint: '從球開始畫線，停在好球帶內', edDrawn: '用「從上面看」「從側面看」也能改轉彎和高度。試投確認後再登錄吧',
     errStart: '請從投手手上的球開始畫', errZone: '線沒有停在好球帶內，無法接受', errInk: '線已經不能再延長了，請在這裡停下', errShort: '再畫長一點吧',
     viewP: '投手視角', viewB: '打者視角', tapSkip: '點一下略過',
     regTitle: '為魔球取名', namePh: '魔球名稱（最多16字）', regSend: '登錄',
@@ -374,11 +383,12 @@ const TX = {
     triesN: '挑戰{a}', avgN: '被打擊率 {v}',
   },
   ko: {
+    vBack: '뒤에서', vTop: '위에서 보기', vSide: '옆에서 보기', pickHint: '어디로 던질까요? 스트라이크 존 안을 탭', pickErr: '스트라이크 존 안을 탭해 줘', drawTop: '위에서 본 휘는 모양을 그리자. 손의 공에서 분홍 표시까지', drawSide: '옆에서 본 높이를 그리자. 손의 공에서 분홍 표시까지', errEnd: '분홍 표시(골)까지 그려 줘', tutSkip: '연습 건너뛰기',
     title: '마법의 공', ruby: '마법의 공', titleH: '마법의 <span class="tama">공</span>', sub: '선을 그리면 그것이 마구가 된다.',
     make: '마구 만들기', makeSub: '투수', byCode: '암호로 치기', byCodeSub: '타자', random: '누군가의 마구 치기', rank: '랭킹',
     chal: '마구의 도전장이 도착했습니다', enter: '타석에 들어가기', back: '뒤로', toTitle: '타이틀로', close: '닫기',
     ink: '남은 선', edClear: '지우기', edTest: '시험 투구', edReg: '등록하기',
-    edHint: '공에서 선을 그어 스트라이크 존에서 멈추기', edDrawn: '시험 투구로 확인하고 등록하자',
+    edHint: '공에서 선을 그어 스트라이크 존에서 멈추기', edDrawn: '「위에서 보기」「옆에서 보기」로 휘는 모양이나 높이도 바꿀 수 있어요. 시험 투구로 확인하고 등록하자',
     errStart: '투수 손의 공에서부터 그리기 시작해 줘', errZone: '스트라이크 존에서 멈추지 않으면 받을 수 없어요', errInk: '선을 더는 늘릴 수 없어요. 여기서 멈춰 줘', errShort: '조금 더 길게 그려 줘',
     viewP: '투수 시점', viewB: '타자 시점', tapSkip: '탭해서 건너뛰기',
     regTitle: '마구에 이름 붙이기', namePh: '마구 이름(16자까지)', regSend: '등록',
@@ -444,7 +454,9 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0xcfe0ea, 160, 520);
-const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 2000);
+const persp = new THREE.PerspectiveCamera(50, 1, 0.1, 2000);
+const ortho = new THREE.OrthographicCamera(-1, 1, 1, -1, .1, 4000);
+let camera = persp;
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, u) => a + (b - a) * u;
@@ -748,33 +760,50 @@ const buzz = p => { try { navigator.vibrate && navigator.vibrate(p); } catch (_)
 
 /* ===================== カメラ ===================== */
 let VW = 1, VH = 1;
+const MIDZ = (R0.z + ZP) / 2;
 const CAMS = {
   title: { pos: V3(14, 9, ZP - 14), look: V3(0, 1, -6) },
   ed: { pos: V3(0, 3.4, 9.5), look: V3(0, .95, ZP) },
+  goal: { pos: V3(0, 2.3, 4), look: V3(0, .8, ZP) },
   bat: { pos: V3(-.12, 1.9, ZP - 3.1), look: V3(0, .62, ZP + 7) },
 };
 let camMode = 'title';
 function camFov(mode) {
   const asp = VW / VH;
   if (mode === 'ed') { const d = CAMS.ed.pos.distanceTo(CAMS.ed.look); const h = Math.atan(1.5 / d); return Math.max(13, 2 * Math.atan(Math.tan(h) / asp) * 180 / Math.PI); }
+  if (mode === 'goal') { const d = CAMS.goal.pos.distanceTo(CAMS.goal.look); const w = 2 * Math.atan(Math.tan(Math.atan(.7 / d)) / asp), h = 2 * Math.atan(.62 / d); return Math.max(w, h) * 180 / Math.PI; }
   if (mode === 'bat') { const h = Math.atan(.24); return clamp(2 * Math.atan(Math.tan(h) / asp) * 180 / Math.PI, 40, 58); }
   return asp < 1 ? 62 : 45;
 }
 function setCam(mode) {
-  camMode = mode; const c = CAMS[mode];
-  camera.position.copy(c.pos); camera.lookAt(c.look); camera.fov = camFov(mode); camera.updateProjectionMatrix(); camera.updateMatrixWorld(true);
-  catcher.G.visible = mode !== 'bat'; // 打席ではゾーンが見えるようにキャッチャーを消してミットだけ
-  M.bodyC.opacity = 1; M.mitt.opacity = 1; mitt.visible = mode !== 'bat';
-  zone.visible = mode === 'ed' || mode === 'bat';
+  camMode = mode; const asp = VW / VH;
+  if (mode === 'top' || mode === 'side') {
+    camera = ortho;
+    if (mode === 'top') { // 真上から。ピッチャーが下、ホームが上（画面の右 = 後ろから見たときの右）
+      const hh = Math.max(11.5, 4 / asp), hw = hh * asp;
+      Object.assign(ortho, { left: -hw, right: hw, top: hh, bottom: -hh });
+      ortho.position.set(0, 80, MIDZ); ortho.up.set(0, 0, -1); ortho.lookAt(0, 0, MIDZ);
+    } else { // 3塁側の真横から。ピッチャーが左、ホームが右
+      const hw = Math.max(11, 6 * asp), hh = hw / asp, cy = hh * .56;
+      Object.assign(ortho, { left: -hw, right: hw, top: hh, bottom: -hh });
+      ortho.position.set(80, cy + 11, MIDZ); ortho.up.set(0, 1, 0); ortho.lookAt(0, cy, MIDZ); // 少し上から見下ろして地面を見せる
+    }
+    ortho.updateProjectionMatrix(); ortho.updateMatrixWorld(true);
+  } else {
+    camera = persp; const c = CAMS[mode];
+    persp.aspect = asp; persp.position.copy(c.pos); persp.up.set(0, 1, 0); persp.lookAt(c.look); persp.fov = camFov(mode); persp.updateProjectionMatrix(); persp.updateMatrixWorld(true);
+  }
+  catcher.G.visible = mode !== 'bat'; pitcher.G.visible = mode !== 'goal'; // 打席ではゾーンが見えるようにキャッチャーを消してミットだけ
+  M.bodyC.opacity = 1; M.mitt.opacity = 1; mitt.visible = mode !== 'bat' && mode !== 'top';
+  zone.visible = mode === 'ed' || mode === 'bat' || mode === 'goal';
   ballScale = mode === 'bat' ? 2.6 : 1.6;
   zone.userData.fill.material.opacity = mode === 'bat' ? .08 : .16;
 }
 function resize() {
   VW = innerWidth; VH = innerHeight;
-  renderer.setSize(VW, VH, false); camera.aspect = VW / VH;
+  renderer.setSize(VW, VH, false);
   const dc = $('#draw'), pr = Math.min(devicePixelRatio || 1, 2); dc.width = VW * pr; dc.height = VH * pr; dctx.setTransform(pr, 0, 0, pr, 0, 0);
   setCam(camMode);
-  if (mode === 'edit' && ED.pts.length && !ED.drawing) redrawStroke();
 }
 const dctx = $('#draw').getContext('2d');
 
@@ -816,7 +845,7 @@ function decode(str) {
   if (W.length < 2 || W.some(p => !p)) return null;
   if (W[0].distanceTo(R0) > .05) return null;
   if (!inZone(W[W.length - 1], .02)) return null;
-  for (let i = 1; i < W.length; i++) if (W[i].z > W[i - 1].z + .01) return null;
+  for (let i = 0; i < W.length - 1; i++) if (W[i].z < ZP - .01 || W[i].z > R0.z + 2.6) return null;
   if (len3(W) > CAP * 1.03) return null;
   return W;
 }
@@ -833,7 +862,8 @@ let mode = 'title';
 const PANELS = ['#title', '#codeP', '#regP', '#doneP', '#preP', '#endP', '#rankP'];
 function showPanel(id) { PANELS.forEach(p => $(p).hidden = p !== id); }
 function hud({ top = false, ink = false, bat = false, ed = false } = {}) {
-  $('#helpBtn').hidden = !bat; if (!bat) { $('#pad').hidden = true; $('#tut').hidden = true; }
+  $('#helpBtn').hidden = !bat; if (!bat) { $('#pad').hidden = true; $('#tut').hidden = true; $('#tutSkip').hidden = true; }
+  $('#views').hidden = !ed;
   $('#top').hidden = !top; $('#inkBox').hidden = !ink; $('#batInfo').hidden = !bat; $('#edBar').hidden = !ed;
 }
 let hintT = 0;
@@ -854,14 +884,48 @@ function resetScene() {
 }
 
 /* ===================== ピッチャー：線を描く ===================== */
-const ED = { pts: [], W: null, P: null, drawing: false, inkOut: false, test: null };
+// view: 'ed'（後ろから）/'top'（上から）/'side'（横から）。上・横は「どこに投げるか」を決めてから描く
+const ED = { pts: [], W: null, P: null, drawing: false, inkOut: false, test: null, view: 'ed', picking: null };
+const goalMark = new THREE.Group(); scene.add(goalMark);
+{
+  const gm = new THREE.MeshBasicMaterial({ color: 0xff3fa4, depthTest: false, transparent: true });
+  const s = new THREE.Mesh(new THREE.SphereGeometry(.09, 16, 12), gm); s.renderOrder = 8; goalMark.add(s);
+  goalMark.visible = false;
+}
+function edGoal() { return ED.W ? ED.W[ED.W.length - 1] : null; }
 function edEnter(keep) {
-  mode = 'edit'; resetScene(); setCam('ed'); showPanel(null); hud({ top: true, ink: true, ed: true });
+  mode = 'edit'; resetScene(); showPanel(null); hud({ top: true, ink: true, ed: true });
   batter.G.visible = false; bat.visible = false;
-  if (!keep) { ED.pts = []; ED.W = null; ED.P = null; setTube(null); }
-  ED.drawing = false; ED.test = null; clearDraw(); setInk(ED.P ? ED.P.L : 0);
-  if (ED.P) setTube(ED.P.W);
-  edButtons(); hint(ED.P ? tr('edDrawn') : tr('edHint'), false, true);
+  if (!keep) { ED.pts = []; ED.W = null; ED.P = null; ED.view = 'ed'; setTube(null); }
+  ED.drawing = false; ED.test = null; ED.picking = null; clearDraw();
+  setView(ED.view);
+}
+function setView(v) {
+  ED.view = v; ED.picking = null; setCam(v);
+  setTube(ED.W); setInk(ED.P ? ED.P.L : 0); edButtons(); viewButtons();
+  goalMark.visible = !!ED.W; if (ED.W) goalMark.position.copy(edGoal());
+  hint(v === 'top' ? tr('drawTop') : v === 'side' ? tr('drawSide') : ED.P ? tr('edDrawn') : tr('edHint'), false, true);
+}
+function viewButtons() {
+  $('#views').hidden = mode !== 'edit' || !!ED.test;
+  document.querySelectorAll('#views button').forEach(b => b.setAttribute('aria-pressed', (ED.picking || ED.view) === b.dataset.v));
+}
+// 上・横：まず「どこに投げますか？」
+function startPick(v) {
+  ED.picking = v; setCam('goal'); setTube(null); clearDraw(); viewButtons();
+  goalMark.visible = !!ED.W; if (ED.W) goalMark.position.copy(edGoal());
+  hint(tr('pickHint'), false, true);
+}
+function pickAt(e) {
+  const p = rayZ(e.clientX, e.clientY, ZP);
+  if (!inZone(p, .03)) { hint(tr('pickErr'), true, true); SND.error(); return; }
+  p.x = clamp(p.x, -ZX, ZX); p.y = clamp(p.y, ZB, ZT); p.z = ZP;
+  SND.ok(); buzz(15);
+  const W = ED.W ? retarget(ED.W, p) : resample([R0.clone(), p], .2);
+  if (len3(W) > CAP * 1.02) { hint(tr('errInk'), true, true); SND.error(); return; }
+  ED.W = W; ED.P = makePath(W);
+  const v = ED.picking; goalMark.position.copy(p); goalMark.visible = true;
+  setTimeout(() => { if (mode === 'edit' && ED.picking === v) setView(v); }, 250);
 }
 function edButtons() { $('#edTest').disabled = !ED.P; $('#edReg').disabled = !ED.P; $('#edClear').disabled = !ED.P && !ED.pts.length; }
 function setInk(L) { const k = clamp(1 - L / CAP, 0, 1); $('#inkFill').style.width = (k * 100).toFixed(1) + '%'; $('#ink').classList.toggle('out', k <= .005); $('#ink').classList.toggle('low', k < .2); }
@@ -874,25 +938,70 @@ function strokePath(pts, col, w, glow) {
   if (glow) { dctx.strokeStyle = 'rgba(255,63,164,.35)'; dctx.lineWidth = w * 3; dctx.stroke(); }
   dctx.strokeStyle = col; dctx.lineWidth = w; dctx.stroke();
 }
+function ringAt(p, col, r) { dctx.beginPath(); dctx.arc(p.x, p.y, r, 0, Math.PI * 2); dctx.strokeStyle = col; dctx.lineWidth = 3; dctx.stroke(); }
 function redrawStroke() {
   clearDraw();
-  if (ED.drawing) { strokePath(ED.pts, ED.inkOut ? '#ff6b5a' : '#ffffff', 4, true); return; }
-  if (!ED.P && mode === 'edit' && !ED.test) { // はじめの場所の目印
-    const sp = startPoint(), t = performance.now() / 1000, r = 16 + Math.sin(t * 5) * 4;
-    dctx.beginPath(); dctx.arc(sp.x, sp.y, r, 0, Math.PI * 2); dctx.strokeStyle = 'rgba(255,210,63,.95)'; dctx.lineWidth = 3; dctx.stroke();
-    dctx.beginPath(); dctx.arc(sp.x, sp.y, r + 9, 0, Math.PI * 2); dctx.strokeStyle = 'rgba(255,210,63,.35)'; dctx.lineWidth = 2; dctx.stroke();
-  }
+  if (mode !== 'edit' || ED.test || ED.picking) return;
+  if (ED.drawing) { strokePath(ED.pts, ED.inkOut ? '#ff6b5a' : '#ffffff', 4, true); }
+  const t = performance.now() / 1000, r = 16 + Math.sin(t * 5) * 4;
+  if (!ED.drawing) { const sp = startPoint(); ringAt(sp, 'rgba(255,210,63,.95)', r); ringAt(sp, 'rgba(255,210,63,.35)', r + 9); }
+  if (ED.view !== 'ed' && ED.W) { const g = toScreen(edGoal()); ringAt(g, 'rgba(255,63,164,.9)', 14 + Math.sin(t * 5 + 1) * 3); }
 }
+// 画面の点 → 面との交わり
+function rayHit(sx, sy) { nd.set(sx / VW * 2 - 1, -(sy / VH) * 2 + 1); rc.setFromCamera(nd, camera); return rc.ray; }
+function rayZ(sx, sy, z) { const r = rayHit(sx, sy), o = r.origin, d = r.direction, t = (z - o.z) / d.z; return V3(o.x + d.x * t, o.y + d.y * t, z); }
+function rayY(sx, sy, y) { const r = rayHit(sx, sy), o = r.origin, d = r.direction, t = (y - o.y) / d.y; return V3(o.x + d.x * t, y, o.z + d.z * t); }
+function rayX(sx, sy, x) { const r = rayHit(sx, sy), o = r.origin, d = r.direction, t = (x - o.x) / d.x; return V3(x, o.y + d.y * t, o.z + d.z * t); }
+// 線の長さの割合で N+1 点に取りなおす
+function sampleU(P, N, dist) {
+  const s = arcLens(P, dist), L = s[s.length - 1] || 1, out = []; let j = 1;
+  for (let i = 0; i <= N; i++) {
+    const d = L * i / N; while (j < P.length - 1 && s[j] < d) j++;
+    const a = P[j - 1], b = P[j], u = clamp((d - s[j - 1]) / ((s[j] - s[j - 1]) || 1), 0, 1);
+    out.push({ x: lerp(a.x, b.x, u), y: lerp(a.y, b.y, u), z: lerp(a.z, b.z, u) });
+  }
+  return out;
+}
+const d3o = (a, b) => Math.hypot(a.x - b.x, a.y - b.y, a.z - b.z);
+// はじめを手、終わりをゴールにそろえて、地面より下・ホームより奥に行かないようにする
+function finish(S, goal) {
+  const N = S.length - 1, a = S[0], b = S[N];
+  const out = S.map((p, i) => {
+    const u = i / N;
+    const x = p.x + (R0.x - a.x) * (1 - u) + (goal.x - b.x) * u;
+    const y = p.y + (R0.y - a.y) * (1 - u) + (goal.y - b.y) * u;
+    const z = p.z + (R0.z - a.z) * (1 - u) + (goal.z - b.z) * u;
+    return V3(x, Math.max(.04, y), i === N ? ZP : clamp(z, ZP + .05, R0.z + 2.5));
+  });
+  return resample(out, .2);
+}
+function retarget(W, goal) { return finish(sampleU(W, 240, d3o), goal); }
+// 上・横で描いた線を、今の魔球にかさねる
+function combine(view, pts3) {
+  const goal = edGoal(), N = 240;
+  const base = sampleU(ED.W, N, d3o);
+  const s = sampleU(pts3, N, view === 'top' ? (a, b) => Math.hypot(a.x - b.x, a.z - b.z) : (a, b) => Math.hypot(a.y - b.y, a.z - b.z));
+  for (let i = 0; i <= N; i++) { if (view === 'top') { base[i].x = s[i].x; base[i].z = s[i].z; } else { base[i].y = s[i].y; base[i].z = s[i].z; } }
+  return finish(base, goal);
+}
+function screenTo3(view, pts) { return view === 'top' ? pts.map(p => rayY(p.x, p.y, 0)) : pts.map(p => rayX(p.x, p.y, 0)); }
+
 let edPid = null;
 function edDown(e) {
   if (ED.test) { ED.test.skip = true; return; }
+  if (ED.picking) { pickAt(e); return; }
   const sp = startPoint(), p = { x: e.clientX, y: e.clientY };
   const near = Math.max(30, Math.min(VW, VH) * .07);
   if (d2(sp, p) > near) { hint(tr('errStart'), true, true); SND.error(); return; }
   audioOn();
-  ED.pts = [sp, p]; ED.W = null; ED.P = null; setTube(null); ED.drawing = true; ED.inkOut = false;
+  ED.pts = [sp, p]; ED.drawing = true; ED.inkOut = false;
+  if (ED.view === 'ed') { ED.W = null; ED.P = null; setTube(null); goalMark.visible = false; }
   edPid = e.pointerId; try { canvas.setPointerCapture(e.pointerId); } catch (_) { }
   hint(''); edButtons(); edMoveTo(p);
+}
+function trialLen(pts) {
+  if (ED.view === 'ed') return len3(toWorld(pts));
+  return len3(combine(ED.view, screenTo3(ED.view, pts)));
 }
 function edMoveTo(p) {
   if (ED.inkOut) return;
@@ -900,11 +1009,10 @@ function edMoveTo(p) {
   if (dist < 3) return;
   const n = Math.ceil(dist / 6), add = [];
   for (let i = 1; i <= n; i++) add.push({ x: lerp(last.x, p.x, i / n), y: lerp(last.y, p.y, i / n) });
-  const trial = ED.pts.concat(add), W = toWorld(trial), L = len3(W);
+  const trial = ED.pts.concat(add), L = trialLen(trial);
   if (L > CAP) { ED.inkOut = true; hint(tr('errInk'), true, true); SND.error(); buzz(30); setInk(CAP); return; }
   ED.pts = trial; setInk(L);
-  // ゾーンの中にいるか
-  const end = W[W.length - 1]; zone.userData.fill.material.opacity = inZone(end) ? .45 : .16;
+  if (ED.view === 'ed') { const W = toWorld(trial), end = W[W.length - 1]; zone.userData.fill.material.opacity = inZone(end) ? .45 : .16; }
 }
 function edMove(e) { if (!ED.drawing || e.pointerId !== edPid) return; const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; for (const ev of (evs.length ? evs : [e])) edMoveTo({ x: ev.clientX, y: ev.clientY }); }
 function edUp(e) {
@@ -913,22 +1021,39 @@ function edUp(e) {
   let pts = ED.pts; const total = arcLens(pts, d2);
   if (total[total.length - 1] < 25) { edFail(tr('errShort')); return; }
   pts = chaikin(chaikin(pts));
-  let W = toWorld(pts);
-  if (!inZone(W[W.length - 1])) { edFail(tr('errZone')); return; }
-  W = resample(W, .2);
+  let W;
+  if (ED.view === 'ed') {
+    W = toWorld(pts);
+    if (!inZone(W[W.length - 1])) { edFail(tr('errZone')); return; }
+    W = resample(W, .2);
+  } else {
+    const g = toScreen(edGoal()), end = pts[pts.length - 1];
+    if (d2(g, end) > Math.max(36, Math.min(VW, VH) * .08)) { edFail(tr('errEnd')); return; }
+    W = combine(ED.view, screenTo3(ED.view, pts));
+  }
   if (len3(W) > CAP * 1.02) { edFail(tr('errInk')); return; }
-  ED.W = W; ED.P = makePath(W); ED.pts = pts; setInk(ED.P.L);
-  clearDraw(); setTube(W); SND.magic(); edButtons(); hint(tr('edDrawn'), false, true);
+  ED.W = W; ED.P = makePath(W); ED.pts = [];
+  clearDraw(); setTube(W); setInk(ED.P.L); goalMark.position.copy(edGoal()); goalMark.visible = true;
+  SND.magic(); edButtons(); hint(tr('edDrawn'), false, true);
 }
-function edFail(msg) { ED.pts = []; ED.W = null; ED.P = null; setTube(null); clearDraw(); setInk(0); edButtons(); hint(msg, true, true); SND.error(); buzz([40, 40, 40]); }
-$('#edClear').onclick = guard(() => { ED.pts = []; ED.W = null; ED.P = null; setTube(null); clearDraw(); setInk(0); edButtons(); hint(tr('edHint'), false, true); });
+function edFail(msg) {
+  ED.pts = []; clearDraw(); hint(msg, true, true); SND.error(); buzz([40, 40, 40]);
+  if (ED.view === 'ed') { ED.W = null; ED.P = null; setTube(null); setInk(0); goalMark.visible = false; } else { setTube(ED.W); setInk(ED.P ? ED.P.L : 0); }
+  edButtons();
+}
+$('#edClear').onclick = guard(() => { ED.pts = []; ED.W = null; ED.P = null; setTube(null); clearDraw(); setInk(0); goalMark.visible = false; setView('ed'); });
 $('#edTest').onclick = guard(() => { if (!ED.P) return; startTest(); });
-$('#edReg').onclick = guard(() => { if (!ED.P) return; showPanel('#regP'); hud(); $('#regNote').textContent = ''; $('#regNote').className = 'note'; $('#nameIn').value = lsGet('mt_lastName') || ''; });
+$('#edReg').onclick = guard(() => { if (!ED.P) return; showPanel('#regP'); hud(); $('#views').hidden = true; $('#regNote').textContent = ''; $('#regNote').className = 'note'; $('#nameIn').value = lsGet('mt_lastName') || ''; });
 $('#regBack').onclick = guard(() => edEnter(true));
+document.querySelectorAll('#views button').forEach(b => b.onclick = guard(() => {
+  if (mode !== 'edit' || ED.drawing) return;
+  const v = b.dataset.v;
+  if (v === 'ed') setView('ed'); else startPick(v);
+}));
 
 // 試し投げ：ピッチャーから → バッターから
 function startTest() {
-  ED.test = { step: 0, skip: false }; $('#edBar').hidden = true; $('#inkBox').hidden = true; setTube(null); clearDraw();
+  ED.test = { step: 0, skip: false }; $('#edBar').hidden = true; $('#inkBox').hidden = true; $('#views').hidden = true; setTube(null); clearDraw(); goalMark.visible = false;
   testStep();
 }
 function testStep() {
@@ -1011,7 +1136,7 @@ function updatePad() {
   // 輪：待っているときはふくらんで呼ぶ、押しているときは大きく明るく
   const k = hold ? 1.18 : 1 + Math.sin(tAll * 6) * .07; cursor.scale.setScalar(k);
 }
-function showTut(t) { const e = $('#tut'); e.textContent = t || ''; e.hidden = !t; }
+function showTut(t) { const e = $('#tut'); e.textContent = t || ''; e.hidden = !t; $('#tutSkip').hidden = !t; }
 function startAtBat(tut) {
   ED.test = null; PITCH = null; clearTimeout(BAT.timer);
   mode = 'bat'; resetScene(); setCam('bat'); showPanel(null); hud({ top: true, bat: true }); bigMsg(''); clearDraw(); setTube(null); hint('');
@@ -1325,6 +1450,12 @@ async function delBall(code) {
 }
 $('#goRank').onclick = guard(() => showRank('rank'));
 $('#helpBtn').onclick = guard(() => { if (mode === 'bat') startAtBat(true); });
+$('#tutSkip').onclick = guard(() => {
+  if (mode !== 'bat' || !BAT.tut) return;
+  clearTimeout(BAT.timer); PITCH = null; ball.visible = false; trailClear(); passMark.visible = false;
+  lsSet('mt_tut', 1); BAT.tut = 0; showTut(''); BAT.strikes = 0; BAT.n = 0; BAT.over = false; BAT.result = null; BAT.cur.set(0, .78, ZP); BAT.drag = null;
+  bigMsg(tr('tutGo'), '', 'good', 1); batUI(); nextPitch();
+});
 $('#tabRank').onclick = () => showRank('rank');
 $('#tabMine').onclick = () => showRank('mine');
 $('#rankClose').onclick = guard(() => toTitle());
@@ -1362,8 +1493,7 @@ function frame(now) {
   }
   if (mode === 'bat') updateSwing(dt);
   updatePad();
-  if (mode === 'edit' && !ED.drawing && !ED.P && !ED.test) redrawStroke();
-  if (mode === 'edit' && ED.drawing) redrawStroke();
+  if (mode === 'edit') redrawStroke();
   if (ball.visible && camMode === 'bat') { // 打席：遠くでは大きく光らせ、手前では輪が隠れないように小さく
     const dc = camera.position.distanceTo(ball.position);
     ballScale = clamp(dc / 4.5, 1.1, 3.4); ball.userData.halo.material.opacity = clamp((dc - 4) / 10, 0, 1) * .22;
