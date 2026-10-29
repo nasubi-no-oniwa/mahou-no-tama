@@ -331,7 +331,7 @@ const TX = {
     shareP: '魔球「{n}」を作った。\n打てるものなら打ってみろ。\n合言葉：{c}',
     shareW: '魔球「{n}」を{r}で打った！\n合言葉：{c}',
     shareL: '魔球「{n}」に三振した…\n合言葉：{c}',
-    tags: '#魔法の球 #gamedev #ゲーム制作',
+    tags: '#魔法の球',
     rankTitle: '打たれていない魔球', tabRank: 'ランキング', tabMine: '自分の魔球', rEmpty: 'まだありません', mineEmpty: 'まだ魔球を作っていません',
     del: '消す', delQ: 'この魔球を消しますか？（もとにもどせません）', delFail: '消せませんでした', noBalls: 'まだ魔球がありません。最初の1球を作ろう',
     triesN: '挑戦{a}', avgN: '被打率 {v}',
@@ -364,7 +364,7 @@ const TX = {
     shareP: 'I made a magic pitch: "{n}".\nHit it if you can.\nCode: {c}',
     shareW: 'I got a {r} off the magic pitch "{n}"!\nCode: {c}',
     shareL: 'The magic pitch "{n}" struck me out…\nCode: {c}',
-    tags: '#魔法の球 #gamedev #indiegame',
+    tags: '#魔法の球',
     rankTitle: 'Unhittable pitches', tabRank: 'Rankings', tabMine: 'My pitches', rEmpty: 'Nothing yet', mineEmpty: "You haven't made a pitch yet",
     del: 'Delete', delQ: "Delete this pitch? This can't be undone", delFail: "Couldn't delete", noBalls: 'No pitches yet. Make the first one',
     triesN: 'Faced {a}', avgN: 'AVG {v}',
@@ -397,7 +397,7 @@ const TX = {
     shareP: '我做了魔球「{n}」。\n有本事就打打看。\n暗號：{c}',
     shareW: '我把魔球「{n}」打成了{r}！\n暗號：{c}',
     shareL: '被魔球「{n}」三振了…\n暗號：{c}',
-    tags: '#魔法の球 #gamedev #indiegame',
+    tags: '#魔法の球',
     rankTitle: '沒被打到的魔球', tabRank: '排行榜', tabMine: '我的魔球', rEmpty: '還沒有', mineEmpty: '你還沒做過魔球',
     del: '刪除', delQ: '要刪除這顆魔球嗎？（無法復原）', delFail: '無法刪除', noBalls: '還沒有魔球。來做第一顆吧',
     triesN: '挑戰{a}', avgN: '被打擊率 {v}',
@@ -430,7 +430,7 @@ const TX = {
     shareP: '마구 「{n}」을 만들었다.\n칠 수 있으면 쳐 봐.\n암호: {c}',
     shareW: '마구 「{n}」을 {r}으로 쳤다!\n암호: {c}',
     shareL: '마구 「{n}」에 삼진당했다…\n암호: {c}',
-    tags: '#魔法の球 #gamedev #indiegame',
+    tags: '#魔法の球',
     rankTitle: '맞지 않은 마구', tabRank: '랭킹', tabMine: '내 마구', rEmpty: '아직 없어요', mineEmpty: '아직 마구를 만들지 않았어요',
     del: '지우기', delQ: '이 마구를 지울까요? (되돌릴 수 없어요)', delFail: '지우지 못했어요', noBalls: '아직 마구가 없어요. 첫 번째 공을 만들자',
     triesN: '도전{a}', avgN: '피안타율 {v}',
@@ -1085,7 +1085,7 @@ function edFail(msg) {
 }
 $('#edClear').onclick = guard(() => { ED.pts = []; ED.W = null; ED.P = null; setTube(null); clearDraw(); setInk(0); goalMark.visible = false; setView('ed'); });
 $('#edTest').onclick = guard(() => { if (!ED.P) return; startTest(); });
-$('#edReg').onclick = guard(() => { if (!ED.P) return; showPanel('#regP'); hud(); $('#views').hidden = true; $('#regNote').textContent = ''; $('#regNote').className = 'note'; $('#nameIn').value = lsGet('mt_lastName') || ''; });
+$('#edReg').onclick = guard(() => { if (!ED.P) return; showPanel('#regP'); hud(); $('#views').hidden = true; $('#regNote').textContent = ''; $('#regNote').className = 'note'; $('#nameIn').value = ED.draftName || lsGet('mt_lastName') || ''; });
 $('#regBack').onclick = guard(() => edEnter(true));
 document.querySelectorAll('#spdRow button').forEach(b => b.onclick = guard(() => {
   if (mode !== 'edit' || ED.drawing) return;
@@ -1604,6 +1604,17 @@ function stepAll(dt) {
 resize();
 applyLang(); refreshTitle(); setCam('title');
 $('#loading').remove();
+// ?draft= ：軌道・球速・名前が入った魔球を読みこんで、作る画面で開く（登録を押すだけにする）
+(() => {
+  const d = QS.get('draft'); if (!d) return;
+  try {
+    const j = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(d.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0))));
+    const W = decode(j.p); if (!W) return;
+    edEnter(false);
+    ED.kmh = SPEEDS.includes(j.s) ? j.s : 100; ED.W = W; ED.P = makePath(W, ED.kmh); ED.draftName = typeof j.n === 'string' ? j.n.slice(0, 16) : '';
+    setView('ed');
+  } catch (_) { }
+})();
 requestAnimationFrame(frame);
 // テスト用
 window.__mt = {
