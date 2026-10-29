@@ -140,6 +140,20 @@ button.chip{cursor:pointer}
 .rempty{padding:18px 0;font-weight:700;text-align:center;display:block!important}
 #loading{position:absolute;inset:0;display:grid;place-items:center;font-weight:900;color:var(--board);background:#9fc4dd}
 #flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .4s}
+#spdRow{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 74px);display:flex;align-items:center;gap:4px;background:rgba(15,46,36,.88);color:var(--cream);font-weight:900;font-size:13px;padding:4px 10px 4px 12px;border-radius:999px;white-space:nowrap}
+#spdRow button{font:900 14px var(--body);border:0;background:transparent;color:var(--cream);border-radius:999px;padding:6px 11px;cursor:pointer}
+#spdRow button[aria-pressed="true"]{background:var(--magic);color:#fff}
+#intro{position:absolute;left:0;right:0;top:30%;display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;text-align:center;padding:0 16px;animation:introIn 1.7s ease both}
+#intro span{font-weight:900;font-size:14px;letter-spacing:.3em;color:#fff;background:var(--magic);padding:3px 12px;border-radius:999px}
+#intro b{font-family:var(--disp);font-weight:400;font-size:clamp(34px,11vw,60px);line-height:1.1;color:#fff;-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink),0 0 30px rgba(255,63,164,.8);word-break:break-all}
+#intro i{font-style:normal;font-family:var(--disp);font-size:20px;color:var(--gold);-webkit-text-stroke:1px var(--ink);paint-order:stroke fill}
+@keyframes introIn{0%{opacity:0;transform:scale(1.6)}15%{opacity:1;transform:scale(1)}80%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.96)}}
+.news{margin:12px 0 0;background:var(--board2);border:2px solid var(--gold);border-radius:12px;padding:8px 10px;text-align:left;font-weight:700;font-size:13px}
+.news p{margin:0 0 4px;color:var(--gold);font-weight:900;font-size:12px}
+.news div{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.news div b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.news div span{white-space:nowrap;color:var(--cream)}
+.stats div{min-width:0;flex:1}
 #tut{position:absolute;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 64px);width:min(92%,420px);background:var(--magic);color:#fff;font-weight:900;font-size:15px;line-height:1.45;padding:10px 14px;border-radius:12px;box-shadow:0 4px 0 #8f1457,0 10px 24px rgba(0,0,0,.3);pointer-events:none;text-align:center;text-wrap:balance}
 #pad{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;align-items:center;gap:8px;background:rgba(15,46,36,.9);color:var(--cream);font-weight:900;font-size:15px;padding:10px 16px;border-radius:999px;border:2px solid var(--gold);pointer-events:none;white-space:nowrap;max-width:94%}
 #pad.hold{background:var(--gold);color:var(--ink);border-color:#fff;transform:translateX(-50%) scale(1.06)}
@@ -170,6 +184,8 @@ button.chip{cursor:pointer}
   <div id="views" hidden><button data-v="ed" data-i="vBack">後ろから</button><button data-v="top" data-i="vTop">上から見る</button><button data-v="side" data-i="vSide">横から見る</button></div>
   <div id="pad" hidden><span class="hand" id="padHand">👆</span><span id="padT"></span></div>
 
+  <div id="spdRow" hidden><span data-i="spd">球速</span><button data-k="80">80</button><button data-k="100">100</button><button data-k="120">120</button><span>km/h</span></div>
+  <div id="intro" hidden><span id="introL"></span><b id="introN"></b><i id="introS"></i></div>
   <div class="bar" id="edBar" hidden>
     <button id="edClear" data-i="edClear">消す</button>
     <button id="edTest" data-i="edTest">試し投げ</button>
@@ -190,6 +206,7 @@ button.chip{cursor:pointer}
       <button class="big gold" id="goCode"><span data-i="byCode">合言葉で打つ</span><small data-i="byCodeSub">バッター</small></button>
       <button class="big alt" id="goRandom" data-i="random">だれかの魔球を打つ</button>
       <button class="big alt" id="goRank" data-i="rank">ランキング</button>
+      <div class="news" id="myNews" hidden></div>
       <p class="note" id="titleNote"></p>
       <div class="langs" role="group" aria-label="Language"><button data-lang="ja">日本語</button><button data-lang="en">English</button><button data-lang="zh">繁中</button><button data-lang="ko">한국어</button></div>
     </div>
@@ -267,7 +284,7 @@ button.chip{cursor:pointer}
   <div class="overlay" id="rankP" hidden>
     <div class="card">
       <h2 data-i="rankTitle">打たれていない魔球</h2>
-      <div class="tabs" role="group"><button id="tabRank" aria-pressed="true" data-i="tabRank">ランキング</button><button id="tabMine" aria-pressed="false" data-i="tabMine">自分の魔球</button></div>
+      <div class="tabs" role="group"><button id="tabToday" aria-pressed="true" data-i="tabToday">今日</button><button id="tabRank" aria-pressed="false" data-i="tabAll">全期間</button><button id="tabMine" aria-pressed="false" data-i="tabMine">自分の魔球</button></div>
       <ol class="rlist" id="rlist"></ol>
       <button class="big alt" id="rankClose" data-i="close">とじる</button>
     </div>
@@ -288,6 +305,7 @@ const GAME_URL = 'https://nasubi-no-oniwa.github.io/mahou-no-tama/';
 /* ===================== ことば ===================== */
 const TX = {
   ja: {
+    spd: '球速', kmh: '{v}km/h', introLabel: '魔球', myNewsT: 'あなたの魔球の結果（前に見たときから）', myNewsL: '三振 +{k} ／ 打たれた +{h}', tabToday: '今日', tabAll: '全期間', rEmptyToday: '今日はまだありません。打って記録を作ろう', kToday: '今日の奪三振',
     vBack: '後ろから', vTop: '上から見る', vSide: '横から見る', pickHint: 'どこに投げますか？ ストライクゾーンの中をタップ', pickErr: 'ストライクゾーンの中をタップしてね', drawTop: '上から見た曲がり方を描こう。手のボールから、ピンクの印まで', drawSide: '横から見た高さを描こう。手のボールから、ピンクの印まで', errEnd: 'ピンクの印（ゴール）まで描いてね', tutSkip: '練習を飛ばす',
     title: '魔法の球', ruby: 'まほうのたま', titleH: '魔法の<span class="tama">球</span>', sub: '線を描けば、それが魔球になる。',
     make: '魔球を作る', makeSub: 'ピッチャー', byCode: '合言葉で打つ', byCodeSub: 'バッター', random: 'だれかの魔球を打つ', rank: 'ランキング',
@@ -320,6 +338,7 @@ const TX = {
     triesN: '挑戦{a}', avgN: '被打率 {v}',
   },
   en: {
+    spd: 'Speed', kmh: '{v} km/h', introLabel: 'Magic pitch', myNewsT: 'How your pitches did (since you last looked)', myNewsL: 'Ks +{k} / Hits +{h}', tabToday: 'Today', tabAll: 'All time', rEmptyToday: 'Nothing today yet. Go bat and make history', kToday: 'Ks today',
     vBack: 'From behind', vTop: 'From above', vSide: 'From the side', pickHint: 'Where will you throw it? Tap inside the strike zone', pickErr: 'Tap inside the strike zone', drawTop: 'Draw the curve as seen from above. From the ball in hand to the pink mark', drawSide: 'Draw the height as seen from the side. From the ball in hand to the pink mark', errEnd: 'Draw all the way to the pink mark (goal)', tutSkip: 'Skip practice',
     title: 'Magic Pitch', ruby: 'MAGIC PITCH', titleH: 'Magic <span class="tama">Pitch</span>', sub: 'Draw a line. It becomes your magic pitch.',
     make: 'Make a pitch', makeSub: 'Pitcher', byCode: 'Bat with a code', byCodeSub: 'Batter', random: "Bat against someone's pitch", rank: 'Rankings',
@@ -352,6 +371,7 @@ const TX = {
     triesN: 'Faced {a}', avgN: 'AVG {v}',
   },
   zh: {
+    spd: '球速', kmh: '{v}km/h', introLabel: '魔球', myNewsT: '你的魔球戰績（自上次查看以來）', myNewsL: '三振 +{k} ／ 被擊出 +{h}', tabToday: '今天', tabAll: '全期間', rEmptyToday: '今天還沒有。去打擊留下紀錄吧', kToday: '今天的三振',
     vBack: '從後面', vTop: '從上面看', vSide: '從側面看', pickHint: '要投到哪裡？點一下好球帶裡面', pickErr: '請點好球帶裡面', drawTop: '畫出從上面看的轉彎。從手上的球畫到粉紅色記號', drawSide: '畫出從側面看的高度。從手上的球畫到粉紅色記號', errEnd: '請畫到粉紅色記號（終點）', tutSkip: '跳過練習',
     title: '魔法之球', ruby: '魔法之球', titleH: '魔法之<span class="tama">球</span>', sub: '畫出一條線，它就是你的魔球。',
     make: '製作魔球', makeSub: '投手', byCode: '用暗號打擊', byCodeSub: '打者', random: '挑戰別人的魔球', rank: '排行榜',
@@ -384,6 +404,7 @@ const TX = {
     triesN: '挑戰{a}', avgN: '被打擊率 {v}',
   },
   ko: {
+    spd: '구속', kmh: '{v}km/h', introLabel: '마구', myNewsT: '내 마구의 결과 (지난번 확인 이후)', myNewsL: '삼진 +{k} / 맞음 +{h}', tabToday: '오늘', tabAll: '전체', rEmptyToday: '오늘은 아직 없어요. 쳐서 기록을 만들자', kToday: '오늘의 탈삼진',
     vBack: '뒤에서', vTop: '위에서 보기', vSide: '옆에서 보기', pickHint: '어디로 던질까요? 스트라이크 존 안을 탭', pickErr: '스트라이크 존 안을 탭해 줘', drawTop: '위에서 본 휘는 모양을 그리자. 손의 공에서 분홍 표시까지', drawSide: '옆에서 본 높이를 그리자. 손의 공에서 분홍 표시까지', errEnd: '분홍 표시(골)까지 그려 줘', tutSkip: '연습 건너뛰기',
     title: '마법의 공', ruby: '마법의 공', titleH: '마법의 <span class="tama">공</span>', sub: '선을 그리면 그것이 마구가 된다.',
     make: '마구 만들기', makeSub: '투수', byCode: '암호로 치기', byCodeSub: '타자', random: '누군가의 마구 치기', rank: '랭킹',
@@ -862,7 +883,8 @@ function decode(str) {
   return W;
 }
 // 線にそって距離 d の位置
-function makePath(W) { const s = arcLens(W, d3); return { W, s, L: s[s.length - 1], T: s[s.length - 1] / SPEED }; }
+const SPEEDS = [80, 100, 120];
+function makePath(W, kmh = 100) { const s = arcLens(W, d3), v = kmh / 3.6; return { W, s, L: s[s.length - 1], T: s[s.length - 1] / v, v, kmh }; }
 function posAt(P, d, out = new THREE.Vector3()) {
   const { W, s } = P; if (d <= 0) return out.copy(W[0]); if (d >= P.L) return out.copy(W[W.length - 1]);
   let lo = 0, hi = s.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (s[m] < d) lo = m; else hi = m; }
@@ -875,7 +897,7 @@ const PANELS = ['#title', '#codeP', '#regP', '#doneP', '#preP', '#endP', '#rankP
 function showPanel(id) { PANELS.forEach(p => $(p).hidden = p !== id); }
 function hud({ top = false, ink = false, bat = false, ed = false } = {}) {
   $('#helpBtn').hidden = !bat; if (!bat) { $('#pad').hidden = true; $('#tut').hidden = true; $('#tutSkip').hidden = true; }
-  $('#views').hidden = !ed;
+  $('#views').hidden = !ed; $('#spdRow').hidden = !ed; if (!bat) $('#intro').hidden = true;
   $('#top').hidden = !top; $('#inkBox').hidden = !ink; $('#batInfo').hidden = !bat; $('#edBar').hidden = !ed;
 }
 let hintT = 0;
@@ -897,7 +919,8 @@ function resetScene() {
 
 /* ===================== ピッチャー：線を描く ===================== */
 // view: 'ed'（後ろから）/'top'（上から）/'side'（横から）。上・横は「どこに投げるか」を決めてから描く
-const ED = { pts: [], W: null, P: null, drawing: false, inkOut: false, test: null, view: 'ed', picking: null };
+const ED = { pts: [], W: null, P: null, drawing: false, inkOut: false, test: null, view: 'ed', picking: null, kmh: SPEEDS.includes(lsGet('mt_spd')) ? lsGet('mt_spd') : 100 };
+function spdButtons() { document.querySelectorAll('#spdRow button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.k === ED.kmh)); }
 const goalMark = new THREE.Group(); scene.add(goalMark);
 {
   const gm = new THREE.MeshBasicMaterial({ color: 0xff3fa4, depthTest: false, transparent: true });
@@ -914,7 +937,7 @@ function edEnter(keep) {
 }
 function setView(v) {
   ED.view = v; ED.picking = null; setCam(v);
-  setTube(ED.W); setInk(ED.P ? ED.P.L : 0); edButtons(); viewButtons();
+  setTube(ED.W); setInk(ED.P ? ED.P.L : 0); edButtons(); viewButtons(); spdButtons();
   goalMark.visible = !!ED.W; if (ED.W) goalMark.position.copy(edGoal());
   hint(v === 'top' ? tr('drawTop') : v === 'side' ? tr('drawSide') : ED.P ? tr('edDrawn') : tr('edHint'), false, true);
 }
@@ -935,7 +958,7 @@ function pickAt(e) {
   SND.ok(); buzz(15);
   const W = ED.W ? retarget(ED.W, p) : resample([R0.clone(), p], .2);
   if (len3(W) > CAP * 1.02) { hint(tr('errInk'), true, true); SND.error(); return; }
-  ED.W = W; ED.P = makePath(W);
+  ED.W = W; ED.P = makePath(W, ED.kmh);
   const v = ED.picking; goalMark.position.copy(p); goalMark.visible = true;
   setTimeout(() => { if (mode === 'edit' && ED.picking === v) setView(v); }, 250);
 }
@@ -1047,7 +1070,7 @@ function edUp(e) {
     W = combine(ED.view, screenTo3(ED.view, pts));
   }
   if (len3(W) > CAP * 1.02) { edFail(tr('errInk')); return; }
-  ED.W = W; ED.P = makePath(W); ED.pts = [];
+  ED.W = W; ED.P = makePath(W, ED.kmh); ED.pts = [];
   clearDraw(); setTube(W); setInk(ED.P.L); goalMark.position.copy(edGoal()); goalMark.visible = true;
   SND.magic(); edButtons(); hint(tr('edDrawn'), false, true);
 }
@@ -1060,6 +1083,10 @@ $('#edClear').onclick = guard(() => { ED.pts = []; ED.W = null; ED.P = null; set
 $('#edTest').onclick = guard(() => { if (!ED.P) return; startTest(); });
 $('#edReg').onclick = guard(() => { if (!ED.P) return; showPanel('#regP'); hud(); $('#views').hidden = true; $('#regNote').textContent = ''; $('#regNote').className = 'note'; $('#nameIn').value = lsGet('mt_lastName') || ''; });
 $('#regBack').onclick = guard(() => edEnter(true));
+document.querySelectorAll('#spdRow button').forEach(b => b.onclick = guard(() => {
+  if (mode !== 'edit' || ED.drawing) return;
+  ED.kmh = +b.dataset.k; lsSet('mt_spd', ED.kmh); if (ED.W) ED.P = makePath(ED.W, ED.kmh); spdButtons();
+}));
 document.querySelectorAll('#views button').forEach(b => b.onclick = guard(() => {
   if (mode !== 'edit' || ED.drawing) return;
   const v = b.dataset.v;
@@ -1068,7 +1095,7 @@ document.querySelectorAll('#views button').forEach(b => b.onclick = guard(() => 
 
 // 試し投げ：ピッチャーから → バッターから
 function startTest() {
-  ED.test = { step: 0, skip: false }; $('#edBar').hidden = true; $('#inkBox').hidden = true; $('#views').hidden = true; setTube(null); clearDraw(); goalMark.visible = false;
+  ED.test = { step: 0, skip: false }; $('#edBar').hidden = true; $('#inkBox').hidden = true; $('#views').hidden = true; $('#spdRow').hidden = true; setTube(null); clearDraw(); goalMark.visible = false;
   testStep();
 }
 function testStep() {
@@ -1138,7 +1165,7 @@ const BAT = { ball: null, P: null, code: '', strikes: 0, n: 0, over: false, coun
 function batUI() {
   $('#biName').textContent = BAT.ball ? BAT.ball.n : '';
   [...$('#biS').children].forEach((d, i) => d.classList.toggle('on', i < BAT.strikes));
-  $('#biN').textContent = BAT.tut ? tr('practice') : tr('pitchN', { n: Math.max(1, BAT.n) });
+  $('#biN').textContent = BAT.tut ? tr('practice') : tr('pitchN', { n: Math.max(1, BAT.n) }) + ' ・ ' + tr('kmh', { v: BAT.ball && BAT.ball.kmh || 100 });
 }
 // 画面下の案内（いま何をすればいいか）
 function updatePad() {
@@ -1151,6 +1178,12 @@ function updatePad() {
   // 輪：待っているときはふくらんで呼ぶ、押しているときは大きく明るく
   const k = hold ? 1.18 : 1 + Math.sin(tAll * 6) * .07; cursor.scale.setScalar(k);
 }
+function showIntro(cb) {
+  const b = BAT.ball || {}, e = $('#intro');
+  $('#introL').textContent = tr('introLabel'); $('#introN').textContent = b.n || ''; $('#introS').textContent = tr('kmh', { v: b.kmh || 100 });
+  e.hidden = true; void e.offsetWidth; e.hidden = false; SND.magic(); buzz(20);
+  BAT.timer = setTimeout(() => { e.hidden = true; if (mode === 'bat') cb(); }, 1750);
+}
 function showTut(t) { const e = $('#tut'); e.textContent = t || ''; e.hidden = !t; $('#tutSkip').hidden = !t; }
 function startAtBat(tut) {
   ED.test = null; PITCH = null; clearTimeout(BAT.timer);
@@ -1160,10 +1193,10 @@ function startAtBat(tut) {
     BAT.tut = 1; BAT.tutDrag = 0; BAT.tutTries = 0;
     cursor.visible = true; placeCursor(); batterPose(0); setBat(0); showTut(tr('tut1')); batUI(); return;
   }
-  BAT.tut = 0; showTut(''); batUI(); nextPitch();
+  BAT.tut = 0; showTut(''); batUI(); cursor.visible = true; placeCursor(); showIntro(nextPitch);
 }
 // 練習の1球：ゆっくり（60km/h）・まっすぐ・ゾーンのまん中
-function practicePath() { const W = resample([R0.clone(), V3(0, .8, ZP)], .2); const P = makePath(W); P.v = 60 / 3.6; P.T = P.L / P.v; return P; }
+function practicePath() { return makePath(resample([R0.clone(), V3(0, .8, ZP)], .2), 60); }
 function startPractice() {
   BAT.tut = 2; BAT.swung = false; BAT.swingT = -1; BAT.swingK = 0; BAT.result = null;
   cursor.visible = true; placeCursor(); batterPose(0); setBat(0); setCam('bat'); showTut(tr(BAT.tutTries ? 'tutAgain' : 'tut2')); batUI();
@@ -1174,7 +1207,7 @@ function afterPractice() {
   const ok = BAT.result === 'hit' || BAT.result === 'hr'; BAT.tutTries++;
   if (ok || BAT.tutTries >= 3) {
     lsSet('mt_tut', 1); showTut(''); bigMsg(tr(ok ? 'tutOk' : 'tutGo'), '', 'good', 1.3);
-    BAT.timer = setTimeout(() => { if (mode !== 'bat') return; BAT.tut = 0; BAT.strikes = 0; BAT.n = 0; BAT.over = false; BAT.cur.set(0, .78, ZP); batUI(); nextPitch(); }, 1300);
+    BAT.timer = setTimeout(() => { if (mode !== 'bat') return; BAT.tut = 0; BAT.strikes = 0; BAT.n = 0; BAT.over = false; BAT.cur.set(0, .78, ZP); batUI(); showIntro(nextPitch); }, 1300);
   } else BAT.timer = setTimeout(() => { if (mode === 'bat') startPractice(); }, 300);
 }
 function nextPitch() {
@@ -1274,7 +1307,7 @@ async function endAtBat(win) {
 }
 function statsHtml(c) {
   const a = c && c.a || 0, h = c && c.h || 0;
-  return `<div><span>${esc(tr('tries'))}</span><b>${a}</b></div><div><span>${esc(tr('kCol'))}</span><b>${a - h}</b></div><div><span>${esc(tr('avg'))}</span><b>${fmtAvg(a, h)}</b></div>`;
+  return `<div><span>${esc(tr('spd'))}</span><b>${BAT.ball && BAT.ball.kmh || 100}</b></div><div><span>${esc(tr('tries'))}</span><b>${a}</b></div><div><span>${esc(tr('kCol'))}</span><b>${a - h}</b></div><div><span>${esc(tr('avg'))}</span><b>${fmtAvg(a, h)}</b></div>`;
 }
 function fmtAvg(a, h) { if (!a) return '-'; const v = h / a; return v >= 1 ? '1.000' : '.' + String(Math.round(v * 1000)).padStart(3, '0'); }
 $('#endAgain').onclick = guard(() => { BAT.practice = true; BAT.counted = true; startAtBat(); });
@@ -1312,6 +1345,7 @@ function markDone(code) { const d = doneList(); if (!d.includes(code)) { d.push(
 function newCode() { const r = new Uint32Array(8); crypto.getRandomValues(r); let s = ''; for (const x of r) s += CODE_CH[x % CODE_CH.length]; return s; }
 function cleanCode(s) { return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').split('').filter(c => CODE_CH.includes(c)).join('').slice(0, 8); }
 
+function dayKey() { return new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10).replace(/-/g, ''); }
 // 名前の言葉チェック
 const NG = ['ちんこ', 'ちんぽ', 'まんこ', 'おまんこ', 'せっくす', 'セックス', 'ちんちん', 'きんたま', 'ふぇら', 'フェラ', 'レイプ', 'れいぷ', '強姦', '死ね', 'しね', '殺す', 'ころす', 'ガイジ', 'がいじ', '池沼', 'ちしょう', 'キチガイ', 'きちがい', '気違い', 'ニガー', 'チョン', 'シナ人', '支那', 'ブス', 'カタワ', 'めくら', 'つんぼ', 'おし', 'ホモ', 'レズ', 'オカマ', 'エタ', '非人', 'fuck', 'shit', 'bitch', 'cunt', 'dick', 'cock', 'pussy', 'nigger', 'nigga', 'faggot', 'fag', 'retard', 'whore', 'slut', 'rape', 'porn', 'sex', 'kill', 'nazi', 'hitler', '씨발', '시발', '병신', '좆', '보지', '자지', '섹스', '肏', '屄', '屌', '幹你', '操你', '他媽', '婊子', '強暴'];
 function badName(s) {
@@ -1334,7 +1368,7 @@ $('#regGo').onclick = guard(async () => {
     for (let i = 0; i < 4 && !code; i++) {
       const c = newCode();
       try {
-        await fbPatch('mahou', { ['balls/' + c]: { n: name, p, u: a.uid, t: { '.sv': 'timestamp' }, v: 1 }, ['last/' + a.uid]: { t: { '.sv': 'timestamp' } } }, a);
+        await fbPatch('mahou', { ['balls/' + c]: { n: name, p, u: a.uid, s: ED.kmh, t: { '.sv': 'timestamp' }, v: 1 }, ['last/' + a.uid]: { t: { '.sv': 'timestamp' } } }, a);
         code = c;
       } catch (e) {
         if (e.status === 401 || e.status === 403) { const ex = await fbGet('mahou/balls/' + c, '?shallow=true').catch(() => null); if (!ex) throw e; } else throw e;
@@ -1342,6 +1376,7 @@ $('#regGo').onclick = guard(async () => {
     }
     if (!code) throw new Error('code');
     const m = mine(); m.unshift({ c: code, n: name, t: Date.now() }); lsSet('mt_mine', m.slice(0, 100));
+    const seen = lsGet('mt_seen') || {}; seen[code] = { k: 0, h: 0 }; lsSet('mt_seen', seen);
     SND.ok(); showDone(code, name);
   } catch (e) {
     note.className = 'note err'; note.textContent = (e.status === 401 || e.status === 403) ? tr('regWait') : tr('regFail');
@@ -1369,7 +1404,8 @@ async function openBall(code, direct) {
   let b; try { b = await fbGet('mahou/balls/' + code); } catch (e) { return { err: tr('netFail') }; }
   const W = b && decode(b.p);
   if (!b || !W || typeof b.n !== 'string') return { err: tr('notFound') };
-  BAT.ball = { n: b.n.slice(0, 16), u: b.u }; BAT.code = code; BAT.P = makePath(W);
+  const kmh = SPEEDS.includes(b.s) ? b.s : 100;
+  BAT.ball = { n: b.n.slice(0, 16), u: b.u, kmh }; BAT.code = code; BAT.P = makePath(W, kmh);
   BAT.mine = b.u === myUid() || mine().some(x => x.c === code);
   BAT.practice = BAT.mine || doneList().includes(code); BAT.counted = BAT.practice;
   if (direct) { startAtBat(); return {}; }
@@ -1392,10 +1428,11 @@ async function recordResult(code, hit) {
     const ex = await fbGet('mahou/res/' + code + '/' + a.uid).catch(() => null);
     if (ex) { markDone(code); return; }
     for (let i = 0; i < 4; i++) {
-      const c = await fbGet('mahou/cnt/' + code).catch(() => null);
-      const A = (c && c.a || 0) + 1, H = (c && c.h || 0) + hit;
+      const d = dayKey();
+      const [c, cd] = await Promise.all([fbGet('mahou/cnt/' + code).catch(() => null), fbGet('mahou/day/' + d + '/' + code).catch(() => null)]);
+      const A = (c && c.a || 0) + 1, H = (c && c.h || 0) + hit, Ad = (cd && cd.a || 0) + 1, Hd = (cd && cd.h || 0) + hit;
       try {
-        await fbPatch('mahou', { ['res/' + code + '/' + a.uid]: { h: hit, t: { '.sv': 'timestamp' } }, ['cnt/' + code]: { a: A, h: H, k: A - H, n: BAT.ball.n } }, a);
+        await fbPatch('mahou', { ['res/' + code + '/' + a.uid]: { h: hit, t: { '.sv': 'timestamp' } }, ['cnt/' + code]: { a: A, h: H, k: A - H, n: BAT.ball.n }, ['day/' + d + '/' + code]: { a: Ad, h: Hd, k: Ad - Hd, n: BAT.ball.n } }, a);
         markDone(code); return;
       } catch (e) { await new Promise(r => setTimeout(r, 300 + Math.random() * 500)); }
     }
@@ -1432,16 +1469,17 @@ $('#goMake').onclick = guard(() => edEnter(false));
 $('#backBtn').onclick = guard(() => { if (mode === 'bat') { PITCH = null; clearTimeout(BAT.timer); } ED.test = null; toTitle(); });
 
 // ランキング
-let rankTab = 'rank';
+let rankTab = 'today';
 async function showRank(tab) {
-  rankTab = tab; $('#tabRank').setAttribute('aria-pressed', tab === 'rank'); $('#tabMine').setAttribute('aria-pressed', tab === 'mine');
+  rankTab = tab; $('#tabToday').setAttribute('aria-pressed', tab === 'today'); $('#tabRank').setAttribute('aria-pressed', tab === 'rank'); $('#tabMine').setAttribute('aria-pressed', tab === 'mine');
   showPanel('#rankP'); const ol = $('#rlist'); ol.innerHTML = `<li class="rempty">${esc(tr('loading'))}</li>`;
   try {
-    if (tab === 'rank') {
-      const [cn, hd] = await Promise.all([fbGet('mahou/cnt', '?orderBy=%22k%22&limitToLast=80'), fbGet('mahou/hidden').catch(() => null)]);
-      if (rankTab !== 'rank') return;
+    if (tab === 'rank' || tab === 'today') {
+      const path = tab === 'today' ? 'mahou/day/' + dayKey() : 'mahou/cnt';
+      const [cn, hd] = await Promise.all([fbGet(path, '?orderBy=%22k%22&limitToLast=80'), fbGet('mahou/hidden').catch(() => null)]);
+      if (rankTab !== tab) return;
       const list = Object.entries(cn || {}).filter(([k, v]) => !(hd && hd[k]) && v && typeof v.k === 'number' && v.k > 0).map(([c, v]) => ({ c, ...v })).sort((a, b) => b.k - a.k || b.a - a.a).slice(0, 50);
-      if (!list.length) { ol.innerHTML = `<li class="rempty">${esc(tr('rEmpty'))}</li>`; return; }
+      if (!list.length) { ol.innerHTML = `<li class="rempty">${esc(tr(tab === 'today' ? 'rEmptyToday' : 'rEmpty'))}</li>`; return; }
       ol.innerHTML = list.map((e, i) => `<li><span class="no">${i + 1}</span><span class="nm">${esc(e.n || '?')}<small>${esc(e.c)}</small></span><span class="sc">${esc(tr('kCol'))} <b>${e.k}</b><br>${esc(tr('avgN', { v: fmtAvg(e.a, e.h) }))}</span><button class="pl" data-c="${esc(e.c)}" aria-label="${esc(tr('enter'))}">▶</button></li>`).join('');
     } else {
       const m = mine().slice(0, 30);
@@ -1457,21 +1495,23 @@ async function showRank(tab) {
 async function delBall(code) {
   if (!confirm(tr('delQ'))) return;
   try {
-    const a = await fbAuth(); const c = await fbGet('mahou/cnt/' + code).catch(() => null);
-    const up = { ['balls/' + code]: null }; if (c) up['cnt/' + code] = null;
+    const a = await fbAuth(), d = dayKey();
+    const [c, cd] = await Promise.all([fbGet('mahou/cnt/' + code).catch(() => null), fbGet('mahou/day/' + d + '/' + code).catch(() => null)]);
+    const up = { ['balls/' + code]: null }; if (c) up['cnt/' + code] = null; if (cd) up['day/' + d + '/' + code] = null;
     await fbPatch('mahou', up, a);
     lsSet('mt_mine', mine().filter(x => x.c !== code)); showRank('mine');
   } catch (e) { alert(tr('delFail')); }
 }
-$('#goRank').onclick = guard(() => showRank('rank'));
+$('#goRank').onclick = guard(() => showRank('today'));
 $('#helpBtn').onclick = guard(() => { if (mode === 'bat') startAtBat(true); });
 $('#tutSkip').onclick = guard(() => {
   if (mode !== 'bat' || !BAT.tut) return;
   clearTimeout(BAT.timer); PITCH = null; ball.visible = false; trailClear(); passMark.visible = false;
   lsSet('mt_tut', 1); BAT.tut = 0; showTut(''); BAT.strikes = 0; BAT.n = 0; BAT.over = false; BAT.result = null; BAT.cur.set(0, .78, ZP); BAT.drag = null;
-  bigMsg(tr('tutGo'), '', 'good', 1); batUI(); nextPitch();
+  batUI(); showIntro(nextPitch);
 });
 $('#tabRank').onclick = () => showRank('rank');
+$('#tabToday').onclick = () => showRank('today');
 $('#tabMine').onclick = () => showRank('mine');
 $('#rankClose').onclick = guard(() => toTitle());
 
@@ -1480,6 +1520,27 @@ let chalCode = cleanCode(QS.get('code'));
 let chalName = '';
 function refreshTitle() {
   $('#chalBox').hidden = !chalName; $('#chalName').textContent = chalName;
+  checkMyNews();
+}
+// 自分の魔球が、前に見たときから何人を三振させ、何人に打たれたか
+let newsAt = 0;
+async function checkMyNews() {
+  const box = $('#myNews'), m = mine().slice(0, 20);
+  if (!m.length) { box.hidden = true; return; }
+  if (Date.now() - newsAt < 20000 && box.dataset.html) { box.innerHTML = box.dataset.html; box.hidden = !box.dataset.html; return; }
+  newsAt = Date.now();
+  try {
+    const cs = await Promise.all(m.map(x => fbGet('mahou/cnt/' + x.c).catch(() => null)));
+    const seen = lsGet('mt_seen') || {}, rows = [];
+    m.forEach((x, i) => {
+      const c = cs[i]; if (!c) return; const k = (c.a || 0) - (c.h || 0), h = c.h || 0, sv = seen[x.c] || { k: 0, h: 0 };
+      if (k > sv.k || h > sv.h) rows.push({ n: x.n, dk: Math.max(0, k - sv.k), dh: Math.max(0, h - sv.h) });
+      seen[x.c] = { k, h };
+    });
+    lsSet('mt_seen', seen);
+    const html = rows.length ? `<p>${esc(tr('myNewsT'))}</p>` + rows.slice(0, 5).map(r => `<div><b>${esc(r.n)}</b><span>${esc(tr('myNewsL', { k: r.dk, h: r.dh }))}</span></div>`).join('') : '';
+    box.dataset.html = html; box.innerHTML = html; box.hidden = !html || mode !== 'title';
+  } catch (_) { }
 }
 if (chalCode.length === 8) fbGet('mahou/balls/' + chalCode + '/n').then(n => { if (typeof n === 'string') { chalName = n; refreshTitle(); } }).catch(() => { });
 $('#chalGo').onclick = guard(async () => { const r = await openBall(chalCode); if (r.err) { $('#titleNote').className = 'note err'; $('#titleNote').textContent = r.err; } });
